@@ -1,11 +1,14 @@
 import {
+  BeforeInsert,
   Column,
   CreateDateColumn,
   DeleteDateColumn,
   Entity,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
+import { Panier } from '../../panier/entities/panier.entity';
 
 @Entity('users')
 export class User {
@@ -41,4 +44,16 @@ export class User {
 
   @DeleteDateColumn({ type: 'datetime', name: 'deleted_at', nullable: true })
   deletedAt: Date | null;
+
+  @OneToMany(() => Panier, (panier) => panier.user, { cascade: ['insert'] })
+  paniers: Panier[];
+
+  @BeforeInsert()
+  initPanier() {
+    if (this.role === 'client' || !this.role) {
+      const panier = new Panier();
+      panier.userId = this.id;
+      this.paniers = [panier];
+    }
+  }
 }

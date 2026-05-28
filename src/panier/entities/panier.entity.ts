@@ -32,7 +32,7 @@ export class Panier {
   @OneToMany(() => ProduitPanier, (item) => item.panier, { cascade: true })
   items: ProduitPanier[];
 
-  @ManyToOne(() => User, { nullable: true, onDelete: 'SET NULL' })
+  @ManyToOne(() => User, (user) => user.paniers, { nullable: true, onDelete: 'SET NULL' })
   @JoinColumn({ name: 'user_id' })
   user: User;
 }
