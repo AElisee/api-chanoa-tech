@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, ParseUUIDPipe } from '@nestjs/common';
 import { PanierService } from './panier.service';
 import { CreatePanierDto } from './dto/create-panier.dto';
 import { UpdatePanierDto } from './dto/update-panier.dto';
@@ -8,8 +8,8 @@ export class PanierController {
   constructor(private readonly panierService: PanierService) {}
 
   @Post()
-  create(@Body() createPanierDto: CreatePanierDto) {
-    return this.panierService.create(createPanierDto);
+  create(@Body() dto: CreatePanierDto) {
+    return this.panierService.create(dto);
   }
 
   @Get()
@@ -18,17 +18,17 @@ export class PanierController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.panierService.findOne(+id);
+  findOne(@Param('id', ParseUUIDPipe) id: string) {
+    return this.panierService.findOne(id);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updatePanierDto: UpdatePanierDto) {
-    return this.panierService.update(+id, updatePanierDto);
+  update(@Param('id', ParseUUIDPipe) id: string, @Body() dto: UpdatePanierDto) {
+    return this.panierService.update(id, dto);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.panierService.remove(+id);
+  remove(@Param('id', ParseUUIDPipe) id: string) {
+    return this.panierService.remove(id);
   }
 }

@@ -1,26 +1,50 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { ProduitPanier } from './entities/produit_panier.entity';
 import { CreateProduitPanierDto } from './dto/create-produit_panier.dto';
 import { UpdateProduitPanierDto } from './dto/update-produit_panier.dto';
 
 @Injectable()
 export class ProduitPanierService {
-  create(createProduitPanierDto: CreateProduitPanierDto) {
-    return 'This action adds a new produitPanier';
+  constructor(
+    @InjectRepository(ProduitPanier)
+    private readonly produitPanierRepository: Repository<ProduitPanier>,
+  ) {}
+
+  async create(dto: CreateProduitPanierDto): Promise<ProduitPanier> {
+    const existing = await this.produitPanierRepository.findOne({
+      where: { productId: dto.productId, panierId: dto.panierId },
+    });
+    if (existing) {
+      existing.quantity += dto.quantity;
+      return this.produitPanierRepository.save(existing);
+    }
+    const item = this.produitPanierRepository.create(dto);
+    return this.produitPanierRepository.save(item);
   }
 
-  findAll() {
-    return `This action returns all produitPanier`;
+  async findAll(): Promise<ProduitPanier[]> {
+    return this.produitPanierRepository.find({ relations: ['product', 'panier'] });
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} produitPanier`;
+  async findOne(id: string): Promise<ProduitPanier> {
+    const item = await this.produitPanierRepository.findOne({
+      where: { id },
+      relations: ['product', 'panier'],
+    });
+    if (!item) throw new NotFoundException(`Article panier #${id} introuvable`);
+    return item;
   }
 
-  update(id: number, updateProduitPanierDto: UpdateProduitPanierDto) {
-    return `This action updates a #${id} produitPanier`;
+  async update(id: string, dto: UpdateProduitPanierDto): Promise<ProduitPanier> {
+    await this.findOne(id);
+    await this.produitPanierRepository.update(id, dto);
+    return this.findOne(id);
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} produitPanier`;
+  async remove(id: string): Promise<void> {
+    await this.findOne(id);
+    await this.produitPanierRepository.softDelete(id);
   }
 }

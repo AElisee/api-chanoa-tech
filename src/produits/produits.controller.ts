@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, ParseUUIDPipe } from '@nestjs/common';
 import { ProduitsService } from './produits.service';
 import { CreateProduitDto } from './dto/create-produit.dto';
 import { UpdateProduitDto } from './dto/update-produit.dto';
@@ -8,8 +8,8 @@ export class ProduitsController {
   constructor(private readonly produitsService: ProduitsService) {}
 
   @Post()
-  create(@Body() createProduitDto: CreateProduitDto) {
-    return this.produitsService.create(createProduitDto);
+  create(@Body() dto: CreateProduitDto) {
+    return this.produitsService.create(dto);
   }
 
   @Get()
@@ -18,17 +18,17 @@ export class ProduitsController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.produitsService.findOne(+id);
+  findOne(@Param('id', ParseUUIDPipe) id: string) {
+    return this.produitsService.findOne(id);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateProduitDto: UpdateProduitDto) {
-    return this.produitsService.update(+id, updateProduitDto);
+  update(@Param('id', ParseUUIDPipe) id: string, @Body() dto: UpdateProduitDto) {
+    return this.produitsService.update(id, dto);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.produitsService.remove(+id);
+  remove(@Param('id', ParseUUIDPipe) id: string) {
+    return this.produitsService.remove(id);
   }
 }

@@ -1,26 +1,54 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Commande } from './entities/commande.entity';
 import { CreateCommandeDto } from './dto/create-commande.dto';
 import { UpdateCommandeDto } from './dto/update-commande.dto';
 
 @Injectable()
 export class CommandeService {
-  create(createCommandeDto: CreateCommandeDto) {
-    return 'This action adds a new commande';
+  constructor(
+    @InjectRepository(Commande)
+    private readonly commandeRepository: Repository<Commande>,
+  ) {}
+
+  async create(dto: CreateCommandeDto): Promise<Commande> {
+    const commande = this.commandeRepository.create(dto);
+    return this.commandeRepository.save(commande);
   }
 
-  findAll() {
-    return `This action returns all commande`;
+  async findAll(): Promise<Commande[]> {
+    return this.commandeRepository.find({
+      relations: ['user', 'items', 'items.product', 'delivery'],
+      order: { createdAt: 'DESC' },
+    });
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} commande`;
+  async findOne(id: string): Promise<Commande> {
+    const commande = await this.commandeRepository.findOne({
+      where: { id },
+      relations: ['user', 'items', 'items.product', 'delivery'],
+    });
+    if (!commande) throw new NotFoundException(`Commande #${id} introuvable`);
+    return commande;
   }
 
-  update(id: number, updateCommandeDto: UpdateCommandeDto) {
-    return `This action updates a #${id} commande`;
+  async findByUser(userId: string): Promise<Commande[]> {
+    return this.commandeRepository.find({
+      where: { userId },
+      relations: ['items', 'items.product', 'delivery'],
+      order: { createdAt: 'DESC' },
+    });
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} commande`;
+  async update(id: string, dto: UpdateCommandeDto): Promise<Commande> {
+    await this.findOne(id);
+    await this.commandeRepository.update(id, dto);
+    return this.findOne(id);
+  }
+
+  async remove(id: string): Promise<void> {
+    await this.findOne(id);
+    await this.commandeRepository.softDelete(id);
   }
 }

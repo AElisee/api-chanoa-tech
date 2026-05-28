@@ -1,26 +1,50 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Panier } from './entities/panier.entity';
 import { CreatePanierDto } from './dto/create-panier.dto';
 import { UpdatePanierDto } from './dto/update-panier.dto';
 
 @Injectable()
 export class PanierService {
-  create(createPanierDto: CreatePanierDto) {
-    return 'This action adds a new panier';
+  constructor(
+    @InjectRepository(Panier)
+    private readonly panierRepository: Repository<Panier>,
+  ) {}
+
+  async create(dto: CreatePanierDto): Promise<Panier> {
+    const panier = this.panierRepository.create(dto);
+    return this.panierRepository.save(panier);
   }
 
-  findAll() {
-    return `This action returns all panier`;
+  async findAll(): Promise<Panier[]> {
+    return this.panierRepository.find({ relations: ['items', 'items.product', 'user'] });
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} panier`;
+  async findOne(id: string): Promise<Panier> {
+    const panier = await this.panierRepository.findOne({
+      where: { id },
+      relations: ['items', 'items.product', 'user'],
+    });
+    if (!panier) throw new NotFoundException(`Panier #${id} introuvable`);
+    return panier;
   }
 
-  update(id: number, updatePanierDto: UpdatePanierDto) {
-    return `This action updates a #${id} panier`;
+  async findByUser(userId: string): Promise<Panier | null> {
+    return this.panierRepository.findOne({
+      where: { userId },
+      relations: ['items', 'items.product'],
+    });
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} panier`;
+  async update(id: string, dto: UpdatePanierDto): Promise<Panier> {
+    await this.findOne(id);
+    await this.panierRepository.update(id, dto);
+    return this.findOne(id);
+  }
+
+  async remove(id: string): Promise<void> {
+    await this.findOne(id);
+    await this.panierRepository.softDelete(id);
   }
 }
