@@ -24,7 +24,7 @@ import { DeliveriesModule } from './deliveries/deliveries.module';
         DB_HOST: Joi.string().required(),
         DB_PORT: Joi.number().default(3306),
         DB_USERNAME: Joi.string().required(),
-        DB_PASSWORD: Joi.string().required(),
+        DB_PASSWORD: Joi.string().optional().allow(''),
         DB_NAME: Joi.string().required(),
         JWT_SECRET: Joi.string().min(32).required(),
         JWT_EXPIRES_IN: Joi.string().default('60m'),
