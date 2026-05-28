@@ -1,26 +1,43 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { ProduitCommande } from './entities/produit_commande.entity';
 import { CreateProduitCommandeDto } from './dto/create-produit_commande.dto';
 import { UpdateProduitCommandeDto } from './dto/update-produit_commande.dto';
 
 @Injectable()
 export class ProduitCommandeService {
-  create(createProduitCommandeDto: CreateProduitCommandeDto) {
-    return 'This action adds a new produitCommande';
+  constructor(
+    @InjectRepository(ProduitCommande)
+    private readonly produitCommandeRepository: Repository<ProduitCommande>,
+  ) {}
+
+  async create(dto: CreateProduitCommandeDto): Promise<ProduitCommande> {
+    const item = this.produitCommandeRepository.create(dto);
+    return this.produitCommandeRepository.save(item);
   }
 
-  findAll() {
-    return `This action returns all produitCommande`;
+  async findAll(): Promise<ProduitCommande[]> {
+    return this.produitCommandeRepository.find({ relations: ['product', 'commande'] });
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} produitCommande`;
+  async findOne(id: string): Promise<ProduitCommande> {
+    const item = await this.produitCommandeRepository.findOne({
+      where: { id },
+      relations: ['product', 'commande'],
+    });
+    if (!item) throw new NotFoundException(`Article commande #${id} introuvable`);
+    return item;
   }
 
-  update(id: number, updateProduitCommandeDto: UpdateProduitCommandeDto) {
-    return `This action updates a #${id} produitCommande`;
+  async update(id: string, dto: UpdateProduitCommandeDto): Promise<ProduitCommande> {
+    await this.findOne(id);
+    await this.produitCommandeRepository.update(id, dto);
+    return this.findOne(id);
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} produitCommande`;
+  async remove(id: string): Promise<void> {
+    await this.findOne(id);
+    await this.produitCommandeRepository.softDelete(id);
   }
 }

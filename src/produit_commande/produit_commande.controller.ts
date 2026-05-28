@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, ParseUUIDPipe } from '@nestjs/common';
 import { ProduitCommandeService } from './produit_commande.service';
 import { CreateProduitCommandeDto } from './dto/create-produit_commande.dto';
 import { UpdateProduitCommandeDto } from './dto/update-produit_commande.dto';
@@ -8,8 +8,8 @@ export class ProduitCommandeController {
   constructor(private readonly produitCommandeService: ProduitCommandeService) {}
 
   @Post()
-  create(@Body() createProduitCommandeDto: CreateProduitCommandeDto) {
-    return this.produitCommandeService.create(createProduitCommandeDto);
+  create(@Body() dto: CreateProduitCommandeDto) {
+    return this.produitCommandeService.create(dto);
   }
 
   @Get()
@@ -18,17 +18,17 @@ export class ProduitCommandeController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.produitCommandeService.findOne(+id);
+  findOne(@Param('id', ParseUUIDPipe) id: string) {
+    return this.produitCommandeService.findOne(id);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateProduitCommandeDto: UpdateProduitCommandeDto) {
-    return this.produitCommandeService.update(+id, updateProduitCommandeDto);
+  update(@Param('id', ParseUUIDPipe) id: string, @Body() dto: UpdateProduitCommandeDto) {
+    return this.produitCommandeService.update(id, dto);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.produitCommandeService.remove(+id);
+  remove(@Param('id', ParseUUIDPipe) id: string) {
+    return this.produitCommandeService.remove(id);
   }
 }
