@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ProduitPanier } from './entities/produit_panier.entity';
+import { Produit } from '../produits/entities/produit.entity';
 import { CreateProduitPanierDto } from './dto/create-produit_panier.dto';
 import { UpdateProduitPanierDto } from './dto/update-produit_panier.dto';
 
@@ -10,9 +11,18 @@ export class ProduitPanierService {
   constructor(
     @InjectRepository(ProduitPanier)
     private readonly produitPanierRepository: Repository<ProduitPanier>,
+    @InjectRepository(Produit)
+    private readonly produitRepository: Repository<Produit>,
   ) {}
 
   async create(dto: CreateProduitPanierDto): Promise<ProduitPanier> {
+    let unitPrice = dto.unitPrice;
+    if (unitPrice === undefined) {
+      const produit = await this.produitRepository.findOne({ where: { id: dto.productId } });
+      if (!produit) throw new NotFoundException(`Produit #${dto.productId} introuvable`);
+      unitPrice = Number(produit.price);
+    }
+
     const existing = await this.produitPanierRepository.findOne({
       where: { productId: dto.productId, panierId: dto.panierId },
     });
@@ -20,7 +30,7 @@ export class ProduitPanierService {
       existing.quantity += dto.quantity;
       return this.produitPanierRepository.save(existing);
     }
-    const item = this.produitPanierRepository.create(dto);
+    const item = this.produitPanierRepository.create({ ...dto, unitPrice });
     return this.produitPanierRepository.save(item);
   }
 

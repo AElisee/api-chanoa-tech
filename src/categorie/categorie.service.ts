@@ -1,9 +1,11 @@
 import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import slugify from 'slugify';
 import { Categorie } from './entities/categorie.entity';
 import { CreateCategorieDto } from './dto/create-categorie.dto';
 import { UpdateCategorieDto } from './dto/update-categorie.dto';
+import { PaginationDto } from '../common/dto/pagination.dto';
 
 @Injectable()
 export class CategorieService {
@@ -12,16 +14,38 @@ export class CategorieService {
     private readonly categorieRepository: Repository<Categorie>,
   ) {}
 
-  async create(dto: CreateCategorieDto): Promise<Categorie> {
-    const existing = await this.categorieRepository.findOne({ where: { slug: dto.slug } });
-    if (existing) throw new ConflictException(`Slug "${dto.slug}" déjà utilisé`);
+  private async generateUniqueSlug(base: string, excludeId?: string): Promise<string> {
+    let slug = slugify(base, { lower: true, strict: true });
+    let suffix = 0;
+    while (true) {
+      const candidate = suffix === 0 ? slug : `${slug}-${suffix}`;
+      const found = await this.categorieRepository.findOne({ where: { slug: candidate } });
+      if (!found || found.id === excludeId) return candidate;
+      suffix++;
+    }
+  }
 
-    const categorie = this.categorieRepository.create(dto);
+  async create(dto: CreateCategorieDto): Promise<Categorie> {
+    const slug = dto.slug
+      ? dto.slug
+      : await this.generateUniqueSlug(dto.name);
+
+    const existing = await this.categorieRepository.findOne({ where: { slug } });
+    if (existing) throw new ConflictException(`Slug "${slug}" déjà utilisé`);
+
+    const categorie = this.categorieRepository.create({ ...dto, slug });
     return this.categorieRepository.save(categorie);
   }
 
-  async findAll(): Promise<Categorie[]> {
-    return this.categorieRepository.find({ where: { is_active: true }, order: { sort_order: 'ASC' } });
+  async findAll(pagination: PaginationDto = {}) {
+    const { page = 1, limit = 20 } = pagination;
+    const [data, total] = await this.categorieRepository.findAndCount({
+      where: { is_active: true },
+      order: { sort_order: 'ASC' },
+      skip: (page - 1) * limit,
+      take: limit,
+    });
+    return { data, total, page, limit, totalPages: Math.ceil(total / limit) };
   }
 
   async findOne(id: string): Promise<Categorie> {

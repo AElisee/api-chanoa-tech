@@ -19,6 +19,9 @@ export class ProduitPanier {
   @Column('int', { name: 'quantity', nullable: false, default: 1 })
   quantity: number;
 
+  @Column('decimal', { precision: 10, scale: 2, name: 'unit_price', nullable: false })
+  unitPrice: number;
+
   @Column({ name: 'product_id', nullable: false })
   productId: string;
 

@@ -1,7 +1,8 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, ParseUUIDPipe } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, ParseUUIDPipe, Query } from '@nestjs/common';
 import { CommandeService } from './commande.service';
 import { CreateCommandeDto } from './dto/create-commande.dto';
 import { UpdateCommandeDto } from './dto/update-commande.dto';
+import { PaginationDto } from '../common/dto/pagination.dto';
 
 @Controller('commande')
 export class CommandeController {
@@ -13,8 +14,8 @@ export class CommandeController {
   }
 
   @Get()
-  findAll() {
-    return this.commandeService.findAll();
+  findAll(@Query() pagination: PaginationDto) {
+    return this.commandeService.findAll(pagination);
   }
 
   @Get(':id')

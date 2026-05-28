@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { Panier } from './entities/panier.entity';
 import { CreatePanierDto } from './dto/create-panier.dto';
 import { UpdatePanierDto } from './dto/update-panier.dto';
+import { PaginationDto } from '../common/dto/pagination.dto';
 
 @Injectable()
 export class PanierService {
@@ -17,8 +18,14 @@ export class PanierService {
     return this.panierRepository.save(panier);
   }
 
-  async findAll(): Promise<Panier[]> {
-    return this.panierRepository.find({ relations: { items: { product: true }, user: true } });
+  async findAll(pagination: PaginationDto = {}) {
+    const { page = 1, limit = 20 } = pagination;
+    const [data, total] = await this.panierRepository.findAndCount({
+      relations: { items: { product: true }, user: true },
+      skip: (page - 1) * limit,
+      take: limit,
+    });
+    return { data, total, page, limit, totalPages: Math.ceil(total / limit) };
   }
 
   async findOne(id: string): Promise<Panier> {

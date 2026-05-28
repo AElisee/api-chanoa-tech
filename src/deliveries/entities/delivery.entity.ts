@@ -9,6 +9,16 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
+export enum DeliveryStatus {
+  PENDING           = 'pending',
+  PICKED_UP         = 'picked_up',
+  IN_TRANSIT        = 'in_transit',
+  OUT_FOR_DELIVERY  = 'out_for_delivery',
+  DELIVERED         = 'delivered',
+  FAILED            = 'failed',
+  RETURNED          = 'returned',
+}
+
 @Entity('deliveries')
 export class Delivery {
   @PrimaryGeneratedColumn('uuid', { name: 'id' })
@@ -20,8 +30,8 @@ export class Delivery {
   @Column('varchar', { name: 'carrier', length: 100, nullable: true })
   carrier: string;
 
-  @Column('varchar', { name: 'status', length: 100, nullable: false, default: 'pending' })
-  status: string;
+  @Column({ type: 'enum', enum: DeliveryStatus, default: DeliveryStatus.PENDING })
+  status: DeliveryStatus;
 
   @Column('varchar', { name: 'notes', length: 255, nullable: true })
   notes: string;

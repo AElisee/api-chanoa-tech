@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { Delivery } from './entities/delivery.entity';
 import { CreateDeliveryDto } from './dto/create-delivery.dto';
 import { UpdateDeliveryDto } from './dto/update-delivery.dto';
+import { PaginationDto } from '../common/dto/pagination.dto';
 
 @Injectable()
 export class DeliveriesService {
@@ -17,8 +18,14 @@ export class DeliveriesService {
     return this.deliveryRepository.save(delivery);
   }
 
-  async findAll(): Promise<Delivery[]> {
-    return this.deliveryRepository.find({ order: { createdAt: 'DESC' } });
+  async findAll(pagination: PaginationDto = {}) {
+    const { page = 1, limit = 20 } = pagination;
+    const [data, total] = await this.deliveryRepository.findAndCount({
+      order: { createdAt: 'DESC' },
+      skip: (page - 1) * limit,
+      take: limit,
+    });
+    return { data, total, page, limit, totalPages: Math.ceil(total / limit) };
   }
 
   async findOne(id: string): Promise<Delivery> {

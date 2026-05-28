@@ -1,7 +1,9 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, ParseUUIDPipe } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, ParseUUIDPipe, Query } from '@nestjs/common';
 import { ProduitsService } from './produits.service';
 import { CreateProduitDto } from './dto/create-produit.dto';
 import { UpdateProduitDto } from './dto/update-produit.dto';
+import { Public } from '../auth/decorators/public.decorator';
+import { PaginationDto } from '../common/dto/pagination.dto';
 
 @Controller('produits')
 export class ProduitsController {
@@ -12,11 +14,13 @@ export class ProduitsController {
     return this.produitsService.create(dto);
   }
 
+  @Public()
   @Get()
-  findAll() {
-    return this.produitsService.findAll();
+  findAll(@Query() pagination: PaginationDto) {
+    return this.produitsService.findAll(pagination);
   }
 
+  @Public()
   @Get(':id')
   findOne(@Param('id', ParseUUIDPipe) id: string) {
     return this.produitsService.findOne(id);

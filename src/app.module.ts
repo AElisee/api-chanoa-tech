@@ -1,5 +1,9 @@
 import { Module } from '@nestjs/common';
+import { APP_GUARD } from '@nestjs/core';
 import { ConfigModule } from '@nestjs/config';
+import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
 import * as Joi from 'joi';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -13,6 +17,8 @@ import { CategorieModule } from './categorie/categorie.module';
 import { ProduitPanierModule } from './produit_panier/produit_panier.module';
 import { ProduitCommandeModule } from './produit_commande/produit_commande.module';
 import { DeliveriesModule } from './deliveries/deliveries.module';
+import { MediaModule } from './media/media.module';
+import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 
 @Module({
   imports: [
@@ -32,6 +38,16 @@ import { DeliveriesModule } from './deliveries/deliveries.module';
         JWT_REFRESH_EXPIRES_IN: Joi.string().default('7d'),
       }),
     }),
+    ThrottlerModule.forRoot([{
+      name: 'short',
+      ttl: 60000,
+      limit: 10,
+    }]),
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '..', 'uploads'),
+      serveRoot: '/uploads',
+      exclude: ['/api*'],
+    }),
     DatabaseModule,
     AuthModule,
     ProduitsModule,
@@ -42,8 +58,13 @@ import { DeliveriesModule } from './deliveries/deliveries.module';
     ProduitPanierModule,
     ProduitCommandeModule,
     DeliveriesModule,
+    MediaModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    { provide: APP_GUARD, useClass: JwtAuthGuard },
+    { provide: APP_GUARD, useClass: ThrottlerGuard },
+  ],
 })
 export class AppModule {}

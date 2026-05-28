@@ -1,4 +1,5 @@
 import { Produit } from 'src/produits/entities/produit.entity';
+import { Media } from 'src/media/entities/media.entity';
 import {
   Column,
   CreateDateColumn,
@@ -23,8 +24,8 @@ export class Categorie {
   @Column('text', { name: 'description', nullable: true })
   description?: string;
 
-  @Column('text', { name: 'image_url', nullable: true })
-  image_url?: string;
+  @OneToMany(() => Media, (media) => media.categorie, { cascade: ['insert', 'remove'] })
+  medias: Media[];
 
   @Column('boolean', { name: 'is_active', nullable: false, default: true })
   is_active: boolean;

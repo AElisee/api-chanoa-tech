@@ -1,6 +1,7 @@
 import { Categorie } from 'src/categorie/entities/categorie.entity';
 import { ProduitCommande } from 'src/produit_commande/entities/produit_commande.entity';
 import { ProduitPanier } from 'src/produit_panier/entities/produit_panier.entity';
+import { Media } from 'src/media/entities/media.entity';
 import {
   Column,
   CreateDateColumn,
@@ -48,8 +49,8 @@ export class Produit {
   @Column('decimal', { name: 'stock', precision: 12, scale: 2, nullable: true })
   stock: number;
 
-  @Column('json', { name: 'images', nullable: true })
-  images: string[];
+  @OneToMany(() => Media, (media) => media.produit, { cascade: ['insert', 'remove'] })
+  medias: Media[];
 
   @Column('boolean', { name: 'is_active', nullable: false, default: true })
   is_active: boolean;

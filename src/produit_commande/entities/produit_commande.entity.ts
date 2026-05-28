@@ -22,7 +22,7 @@ export class ProduitCommande {
   @Column({ name: 'commande_id', nullable: false })
   commandeId: string;
 
-  @Column('decimal', { precision: 12, scale: 2, nullable: false })
+  @Column('int', { nullable: false })
   quantity: number;
 
   @Column('decimal', { precision: 12, scale: 2, nullable: false })

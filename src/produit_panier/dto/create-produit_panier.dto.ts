@@ -1,4 +1,4 @@
-import { IsNumber, IsUUID, Min } from 'class-validator';
+import { IsNumber, IsOptional, IsUUID, Min } from 'class-validator';
 
 export class CreateProduitPanierDto {
   @IsUUID()
@@ -10,4 +10,9 @@ export class CreateProduitPanierDto {
   @IsNumber()
   @Min(1)
   quantity: number;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  unitPrice?: number;
 }

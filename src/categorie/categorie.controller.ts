@@ -1,7 +1,9 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, ParseUUIDPipe } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, ParseUUIDPipe, Query } from '@nestjs/common';
 import { CategorieService } from './categorie.service';
 import { CreateCategorieDto } from './dto/create-categorie.dto';
 import { UpdateCategorieDto } from './dto/update-categorie.dto';
+import { Public } from '../auth/decorators/public.decorator';
+import { PaginationDto } from '../common/dto/pagination.dto';
 
 @Controller('categorie')
 export class CategorieController {
@@ -12,11 +14,13 @@ export class CategorieController {
     return this.categorieService.create(dto);
   }
 
+  @Public()
   @Get()
-  findAll() {
-    return this.categorieService.findAll();
+  findAll(@Query() pagination: PaginationDto) {
+    return this.categorieService.findAll(pagination);
   }
 
+  @Public()
   @Get(':id')
   findOne(@Param('id', ParseUUIDPipe) id: string) {
     return this.categorieService.findOne(id);

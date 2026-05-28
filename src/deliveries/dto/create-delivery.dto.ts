@@ -1,4 +1,5 @@
-import { IsDateString, IsOptional, IsString } from 'class-validator';
+import { IsDateString, IsEnum, IsOptional, IsString } from 'class-validator';
+import { DeliveryStatus } from '../entities/delivery.entity';
 
 export class CreateDeliveryDto {
   @IsOptional()
@@ -10,8 +11,8 @@ export class CreateDeliveryDto {
   carrier?: string;
 
   @IsOptional()
-  @IsString()
-  status?: string;
+  @IsEnum(DeliveryStatus)
+  status?: DeliveryStatus;
 
   @IsOptional()
   @IsString()

@@ -5,16 +5,13 @@ export class CreateCategorieDto {
   @MinLength(2)
   name: string;
 
+  @IsOptional()
   @IsString()
-  slug: string;
+  slug?: string;
 
   @IsOptional()
   @IsString()
   description?: string;
-
-  @IsOptional()
-  @IsString()
-  image_url?: string;
 
   @IsOptional()
   @IsBoolean()

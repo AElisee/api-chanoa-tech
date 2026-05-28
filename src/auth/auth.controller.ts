@@ -8,9 +8,11 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
+import { Throttle } from '@nestjs/throttler';
 import { AuthService } from './auth.service';
 import { UserService } from '../user/user.service';
 import { CreateUserDto } from '../user/dto/create-user.dto';
+import { Public } from './decorators/public.decorator';
 
 @Controller('auth')
 export class AuthController {
@@ -19,12 +21,16 @@ export class AuthController {
     private readonly usersService: UserService,
   ) {}
 
+  @Public()
+  @Throttle({ short: { ttl: 60000, limit: 5 } })
   @UseGuards(AuthGuard('local'))
   @Post('login')
   async login(@Request() req) {
     return this.authService.login(req.user, req);
   }
 
+  @Public()
+  @Throttle({ short: { ttl: 60000, limit: 5 } })
   @Post('register')
   async register(@Request() req, @Body() createUserDto: CreateUserDto) {
     const user = await this.usersService.create(createUserDto);
@@ -33,12 +39,12 @@ export class AuthController {
     return this.authService.login(fullUser, req);
   }
 
-  @UseGuards(AuthGuard('jwt'))
   @Get('profile')
   getProfile(@Request() req) {
     return req.user;
   }
 
+  @Public()
   @Post('refresh')
   async refreshToken(@Body() body: { refreshToken: string }) {
     if (!body.refreshToken) throw new UnauthorizedException('Refresh token requis');
@@ -51,11 +57,14 @@ export class AuthController {
     return this.authService.logout(body.refreshToken);
   }
 
+  @Public()
+  @Throttle({ short: { ttl: 60000, limit: 3 } })
   @Post('forgot-password')
   async forgotPassword(@Body() body: { email: string }) {
     return this.authService.forgotPassword(body.email);
   }
 
+  @Public()
   @Post('reset-password')
   async resetPassword(@Body() body: { token: string; pass: string; passConfirm: string }) {
     return this.authService.resetPassword(body.token, body.pass, body.passConfirm);

@@ -1,7 +1,8 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, ParseUUIDPipe } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, ParseUUIDPipe, Query } from '@nestjs/common';
 import { PanierService } from './panier.service';
 import { CreatePanierDto } from './dto/create-panier.dto';
 import { UpdatePanierDto } from './dto/update-panier.dto';
+import { PaginationDto } from '../common/dto/pagination.dto';
 
 @Controller('panier')
 export class PanierController {
@@ -13,8 +14,8 @@ export class PanierController {
   }
 
   @Get()
-  findAll() {
-    return this.panierService.findAll();
+  findAll(@Query() pagination: PaginationDto) {
+    return this.panierService.findAll(pagination);
   }
 
   @Get(':id')

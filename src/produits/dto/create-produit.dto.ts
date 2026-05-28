@@ -13,8 +13,9 @@ export class CreateProduitDto {
   @MinLength(2)
   name: string;
 
+  @IsOptional()
   @IsString()
-  slug: string;
+  slug?: string;
 
   @IsOptional()
   @IsString()
@@ -33,9 +34,6 @@ export class CreateProduitDto {
   @Min(0)
   stock?: number;
 
-  @IsOptional()
-  @IsString({ each: true })
-  images?: string[];
 
   @IsOptional()
   @IsUUID()

@@ -1,7 +1,8 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, ParseUUIDPipe } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, ParseUUIDPipe, Query } from '@nestjs/common';
 import { DeliveriesService } from './deliveries.service';
 import { CreateDeliveryDto } from './dto/create-delivery.dto';
 import { UpdateDeliveryDto } from './dto/update-delivery.dto';
+import { PaginationDto } from '../common/dto/pagination.dto';
 
 @Controller('deliveries')
 export class DeliveriesController {
@@ -13,8 +14,8 @@ export class DeliveriesController {
   }
 
   @Get()
-  findAll() {
-    return this.deliveriesService.findAll();
+  findAll(@Query() pagination: PaginationDto) {
+    return this.deliveriesService.findAll(pagination);
   }
 
   @Get(':id')

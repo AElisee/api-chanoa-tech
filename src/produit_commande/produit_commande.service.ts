@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ProduitCommande } from './entities/produit_commande.entity';
+import { CommandeService } from '../commande/commande.service';
 import { CreateProduitCommandeDto } from './dto/create-produit_commande.dto';
 import { UpdateProduitCommandeDto } from './dto/update-produit_commande.dto';
 
@@ -10,11 +11,14 @@ export class ProduitCommandeService {
   constructor(
     @InjectRepository(ProduitCommande)
     private readonly produitCommandeRepository: Repository<ProduitCommande>,
+    private readonly commandeService: CommandeService,
   ) {}
 
   async create(dto: CreateProduitCommandeDto): Promise<ProduitCommande> {
     const item = this.produitCommandeRepository.create(dto);
-    return this.produitCommandeRepository.save(item);
+    const saved = await this.produitCommandeRepository.save(item);
+    await this.commandeService.recalculerTotal(dto.commandeId);
+    return saved;
   }
 
   async findAll(): Promise<ProduitCommande[]> {
@@ -31,13 +35,15 @@ export class ProduitCommandeService {
   }
 
   async update(id: string, dto: UpdateProduitCommandeDto): Promise<ProduitCommande> {
-    await this.findOne(id);
+    const item = await this.findOne(id);
     await this.produitCommandeRepository.update(id, dto);
+    await this.commandeService.recalculerTotal(item.commandeId);
     return this.findOne(id);
   }
 
   async remove(id: string): Promise<void> {
-    await this.findOne(id);
+    const item = await this.findOne(id);
     await this.produitCommandeRepository.softDelete(id);
+    await this.commandeService.recalculerTotal(item.commandeId);
   }
 }
