@@ -27,6 +27,12 @@ export class User {
   @Column('varchar', { name: 'role', nullable: false, default: 'client' })
   role: string;
 
+  @Column('varchar', { name: 'password_reset_token', nullable: true, select: false })
+  passwordResetToken: string | null;
+
+  @Column('datetime', { name: 'password_reset_expires', nullable: true, select: false })
+  passwordResetExpires: Date | null;
+
   @CreateDateColumn({ type: 'datetime', name: 'created_at' })
   createdAt: Date;
 

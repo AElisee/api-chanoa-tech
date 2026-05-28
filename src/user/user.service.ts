@@ -53,4 +53,33 @@ export class UserService {
     await this.findOne(id);
     await this.userRepository.softDelete(id);
   }
+
+  async findById(id: string): Promise<User | null> {
+    return this.userRepository.findOne({ where: { id } });
+  }
+
+  async setPasswordResetToken(id: string, token: string, expires: Date): Promise<void> {
+    await this.userRepository.update(id, {
+      passwordResetToken: token,
+      passwordResetExpires: expires,
+    });
+  }
+
+  async findByPasswordResetToken(token: string): Promise<User | null> {
+    return this.userRepository
+      .createQueryBuilder('user')
+      .addSelect('user.passwordResetToken')
+      .addSelect('user.passwordResetExpires')
+      .where('user.passwordResetToken = :token', { token })
+      .getOne();
+  }
+
+  async updatePassword(id: string, newPassword: string): Promise<void> {
+    const hash = await bcrypt.hash(newPassword, 10);
+    await this.userRepository.update(id, {
+      password: hash,
+      passwordResetToken: null,
+      passwordResetExpires: null,
+    });
+  }
 }

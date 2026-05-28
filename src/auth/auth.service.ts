@@ -1,10 +1,9 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { UsersService } from '../users/users.service';
+import { UserService } from '../user/user.service';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { randomBytes } from 'crypto';
-import { User } from '../users/entities/user.entity';
-import { EventEmitter2 } from '@nestjs/event-emitter';
+import { User } from '../user/entities/user.entity';
 import { UserSession } from '../security/entities/user-session.entity';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -13,9 +12,8 @@ import { Request } from 'express';
 @Injectable()
 export class AuthService {
   constructor(
-    private readonly usersService: UsersService,
+    private readonly usersService: UserService,
     private readonly jwtService: JwtService,
-    private readonly eventEmitter: EventEmitter2,
     @InjectRepository(UserSession)
     private readonly sessionRepository: Repository<UserSession>,
   ) {}
@@ -23,7 +21,6 @@ export class AuthService {
   async validateUser(email: string, pass: string): Promise<User | null> {
     const user = await this.usersService.findByEmail(email);
     if (user && (await bcrypt.compare(pass, user.password))) {
-      // Return the full user object, as relations are eagerly loaded
       return user;
     }
     return null;
@@ -33,47 +30,46 @@ export class AuthService {
     const payload = {
       email: user.email,
       sub: user.id,
-      roles: user.roles.map(r => r.name)
+      role: user.role,
     };
 
     const refreshToken = randomBytes(64).toString('hex');
 
-    // Create a new session
     const session = this.sessionRepository.create({
       user,
       refreshToken,
       ipAddress: req.ip,
-      userAgent: req.headers['user-agent'],
+      userAgent: req.headers['user-agent'] as string,
     });
     await this.sessionRepository.save(session);
-
-    this.eventEmitter.emit('auth.login.success', {
-      user,
-    });
 
     return {
       access_token: this.jwtService.sign(payload),
       refresh_token: refreshToken,
-      user: user, // Return the full user object to the frontend
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        role: user.role,
+      },
     };
   }
 
   async refreshToken(refreshToken: string) {
     const session = await this.sessionRepository.findOne({
       where: { refreshToken },
-      relations: ['user', 'user.roles'],
+      relations: ['user'],
     });
 
     if (!session) {
-      throw new UnauthorizedException('Access Denied: Invalid refresh token');
+      throw new UnauthorizedException('Refresh token invalide');
     }
 
-    // Update last used timestamp
     session.lastUsedAt = new Date();
     await this.sessionRepository.save(session);
 
     const user = session.user;
-    const payload = { email: user.email, sub: user.id, roles: user.roles.map(r => r.name) };
+    const payload = { email: user.email, sub: user.id, role: user.role };
 
     return {
       access_token: this.jwtService.sign(payload),
@@ -81,57 +77,42 @@ export class AuthService {
   }
 
   async logout(refreshToken: string): Promise<{ message: string }> {
-    const result = await this.sessionRepository.delete({ refreshToken });
-    if (result.affected === 0) {
-      // Fail silently to prevent token scanning
-      console.log(`Logout attempt with invalid refresh token.`);
-    }
-    return { message: 'Logged out successfully' };
+    await this.sessionRepository.delete({ refreshToken });
+    return { message: 'Déconnecté avec succès' };
   }
 
-  async forgotPassword(email: string): Promise<{ resetToken: string }> {
+  async forgotPassword(email: string): Promise<{ message: string }> {
     const user = await this.usersService.findByEmail(email);
     if (!user) {
-      // To prevent user enumeration, we don't throw an error.
-      // In a real app, we would log this attempt but send a generic success response.
-      console.log(`Password reset attempt for non-existent user: ${email}`);
-      // We return a dummy token to complete the simulation flow, but in a real app, nothing would be returned.
-      return { resetToken: 'dummy-token-for-simulation' };
+      return { message: 'Si cet email existe, un lien de réinitialisation a été envoyé.' };
     }
 
     const resetToken = randomBytes(32).toString('hex');
     const expires = new Date();
-    expires.setHours(expires.getHours() + 1); // Token expires in 1 hour
+    expires.setHours(expires.getHours() + 1);
 
     await this.usersService.setPasswordResetToken(user.id, resetToken, expires);
 
-    // In a real application, you would email this token to the user.
-    // For this simulation, we return it in the response.
-    console.log(`Generated password reset token for ${email}: ${resetToken}`);
-    return { resetToken };
+    // TODO: envoyer l'email avec le resetToken
+    return { message: 'Si cet email existe, un lien de réinitialisation a été envoyé.' };
   }
 
-  async resetPassword(
-    token: string,
-    pass: string,
-    passConfirm: string,
-  ): Promise<{ message: string }> {
+  async resetPassword(token: string, pass: string, passConfirm: string): Promise<{ message: string }> {
     if (pass !== passConfirm) {
-      throw new UnauthorizedException('Passwords do not match');
+      throw new UnauthorizedException('Les mots de passe ne correspondent pas');
     }
 
     const user = await this.usersService.findByPasswordResetToken(token);
 
     if (!user || !user.passwordResetExpires) {
-      throw new UnauthorizedException('Invalid token');
+      throw new UnauthorizedException('Token invalide');
     }
 
     if (user.passwordResetExpires < new Date()) {
-      throw new UnauthorizedException('Token has expired');
+      throw new UnauthorizedException('Token expiré');
     }
 
     await this.usersService.updatePassword(user.id, pass);
-
-    return { message: 'Password has been reset successfully' };
+    return { message: 'Mot de passe réinitialisé avec succès' };
   }
 }
