@@ -20,7 +20,7 @@ import { UserSession } from '../security/entities/user-session.entity';
       inject: [ConfigService],
       useFactory: (config: ConfigService) => ({
         secret: config.get<string>('JWT_SECRET'),
-        signOptions: { expiresIn: config.get<string>('JWT_EXPIRES_IN') },
+        signOptions: { expiresIn: config.get('JWT_EXPIRES_IN', '60m') },
       }),
     }),
     TypeOrmModule.forFeature([UserSession]),

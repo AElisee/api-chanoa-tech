@@ -18,13 +18,13 @@ export class ProduitCommandeService {
   }
 
   async findAll(): Promise<ProduitCommande[]> {
-    return this.produitCommandeRepository.find({ relations: ['product', 'commande'] });
+    return this.produitCommandeRepository.find({ relations: { product: true, commande: true } });
   }
 
   async findOne(id: string): Promise<ProduitCommande> {
     const item = await this.produitCommandeRepository.findOne({
       where: { id },
-      relations: ['product', 'commande'],
+      relations: { product: true, commande: true },
     });
     if (!item) throw new NotFoundException(`Article commande #${id} introuvable`);
     return item;

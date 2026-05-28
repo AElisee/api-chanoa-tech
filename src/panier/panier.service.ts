@@ -18,13 +18,13 @@ export class PanierService {
   }
 
   async findAll(): Promise<Panier[]> {
-    return this.panierRepository.find({ relations: ['items', 'items.product', 'user'] });
+    return this.panierRepository.find({ relations: { items: { product: true }, user: true } });
   }
 
   async findOne(id: string): Promise<Panier> {
     const panier = await this.panierRepository.findOne({
       where: { id },
-      relations: ['items', 'items.product', 'user'],
+      relations: { items: { product: true }, user: true },
     });
     if (!panier) throw new NotFoundException(`Panier #${id} introuvable`);
     return panier;
@@ -33,7 +33,7 @@ export class PanierService {
   async findByUser(userId: string): Promise<Panier | null> {
     return this.panierRepository.findOne({
       where: { userId },
-      relations: ['items', 'items.product'],
+      relations: { items: { product: true } },
     });
   }
 

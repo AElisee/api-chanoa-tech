@@ -58,7 +58,7 @@ export class AuthService {
   async refreshToken(refreshToken: string) {
     const session = await this.sessionRepository.findOne({
       where: { refreshToken },
-      relations: ['user'],
+      relations: { user: true },
     });
 
     if (!session) {

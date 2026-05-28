@@ -25,13 +25,13 @@ export class ProduitPanierService {
   }
 
   async findAll(): Promise<ProduitPanier[]> {
-    return this.produitPanierRepository.find({ relations: ['product', 'panier'] });
+    return this.produitPanierRepository.find({ relations: { product: true, panier: true } });
   }
 
   async findOne(id: string): Promise<ProduitPanier> {
     const item = await this.produitPanierRepository.findOne({
       where: { id },
-      relations: ['product', 'panier'],
+      relations: { product: true, panier: true },
     });
     if (!item) throw new NotFoundException(`Article panier #${id} introuvable`);
     return item;

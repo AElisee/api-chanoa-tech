@@ -19,7 +19,7 @@ export class CommandeService {
 
   async findAll(): Promise<Commande[]> {
     return this.commandeRepository.find({
-      relations: ['user', 'items', 'items.product', 'delivery'],
+      relations: { user: true, items: { product: true }, delivery: true },
       order: { createdAt: 'DESC' },
     });
   }
@@ -27,7 +27,7 @@ export class CommandeService {
   async findOne(id: string): Promise<Commande> {
     const commande = await this.commandeRepository.findOne({
       where: { id },
-      relations: ['user', 'items', 'items.product', 'delivery'],
+      relations: { user: true, items: { product: true }, delivery: true },
     });
     if (!commande) throw new NotFoundException(`Commande #${id} introuvable`);
     return commande;
@@ -36,7 +36,7 @@ export class CommandeService {
   async findByUser(userId: string): Promise<Commande[]> {
     return this.commandeRepository.find({
       where: { userId },
-      relations: ['items', 'items.product', 'delivery'],
+      relations: { items: { product: true }, delivery: true },
       order: { createdAt: 'DESC' },
     });
   }
