@@ -40,6 +40,19 @@ const imageFilter = (_req: any, file: Express.Multer.File, cb: any) => {
 export class MediaController {
   constructor(private readonly mediaService: MediaService) {}
 
+  @Post('upload')
+  @UseInterceptors(FileInterceptor('file', {
+    storage: imageStorage,
+    fileFilter: imageFilter,
+    limits: { fileSize: 5 * 1024 * 1024 },
+  }))
+  uploadTemporary(
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    if (!file) throw new BadRequestException('Aucun fichier envoyé');
+    return this.mediaService.saveTemporary(file);
+  }
+
   @Post('upload/produit/:productId')
   @UseInterceptors(FileInterceptor('file', {
     storage: imageStorage,

@@ -15,13 +15,13 @@ import {
 } from 'typeorm';
 
 export enum OrderStatus {
-  DRAFT = 'draft',
-  PENDING = 'pending',
+  PENDING    = 'pending',
+  CONFIRMED  = 'confirmed',
   PROCESSING = 'processing',
-  SHIPPED = 'shipped',
-  DELIVERED = 'delivered',
-  CANCELLED = 'cancelled',
-  REFUNDED = 'refunded',
+  SHIPPED    = 'shipped',
+  DELIVERED  = 'delivered',
+  CANCELLED  = 'cancelled',
+  REFUNDED   = 'refunded',
 }
 
 @Entity('orders')
@@ -47,6 +47,21 @@ export class Commande {
 
   @Column('varchar', { name: 'notes', length: 255, nullable: true })
   notes: string;
+
+  @Column({ type: 'json', nullable: true, name: 'shipping_address' })
+  shippingAddress: Record<string, string>;
+
+  @Column({ nullable: true, name: 'guest_email' })
+  guestEmail: string;
+
+  @Column({ nullable: true, name: 'invoice_url' })
+  invoiceUrl: string;
+
+  @Column({ nullable: true, unique: true, name: 'payment_reference' })
+  paymentReference: string;
+
+  @Column({ nullable: true, name: 'payment_method' })
+  paymentMethod: string;
 
   @Column({ name: 'user_id', nullable: true })
   userId: string | null;

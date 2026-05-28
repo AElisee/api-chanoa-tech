@@ -1,4 +1,4 @@
-import { IsEnum, IsNumber, IsOptional, IsString, IsUUID, Min } from 'class-validator';
+import { IsEnum, IsNumber, IsObject, IsOptional, IsString, IsUUID, Min } from 'class-validator';
 import { OrderStatus } from '../entities/commande.entity';
 
 export class CreateCommandeDto {
@@ -18,4 +18,24 @@ export class CreateCommandeDto {
   @IsOptional()
   @IsUUID()
   userId?: string;
+
+  @IsOptional()
+  @IsObject()
+  shippingAddress?: Record<string, string>;
+
+  @IsOptional()
+  @IsString()
+  guestEmail?: string;
+
+  @IsOptional()
+  @IsString()
+  invoiceUrl?: string;
+
+  @IsOptional()
+  @IsString()
+  paymentReference?: string;
+
+  @IsOptional()
+  @IsString()
+  paymentMethod?: string;
 }

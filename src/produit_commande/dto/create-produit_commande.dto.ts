@@ -1,4 +1,4 @@
-import { IsInt, IsNumber, IsUUID, Min } from 'class-validator';
+import { IsInt, IsNumber, IsObject, IsOptional, IsUUID, Min } from 'class-validator';
 
 export class CreateProduitCommandeDto {
   @IsUUID()
@@ -13,5 +13,9 @@ export class CreateProduitCommandeDto {
 
   @IsNumber()
   @Min(0)
-  price: number;
+  unitPrice: number;
+
+  @IsOptional()
+  @IsObject()
+  productSnapshot?: Record<string, unknown>;
 }

@@ -25,8 +25,11 @@ export class ProduitCommande {
   @Column('int', { nullable: false })
   quantity: number;
 
-  @Column('decimal', { precision: 12, scale: 2, nullable: false })
-  price: number;
+  @Column({ name: 'unit_price', type: 'decimal', precision: 12, scale: 2, nullable: false })
+  unitPrice: number;
+
+  @Column({ type: 'json', nullable: true, name: 'product_snapshot' })
+  productSnapshot: Record<string, unknown>;
 
   @CreateDateColumn({ type: 'datetime', name: 'created_at' })
   createdAt: Date;

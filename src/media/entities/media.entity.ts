@@ -46,6 +46,9 @@ export class Media {
   @Column('int', { name: 'sort_order', default: 0 })
   sortOrder: number;
 
+  @Column({ default: 0 })
+  position: number;
+
   @Column({ name: 'product_id', nullable: true, type: 'varchar' })
   productId: string | null;
 

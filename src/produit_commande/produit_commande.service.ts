@@ -36,7 +36,8 @@ export class ProduitCommandeService {
 
   async update(id: string, dto: UpdateProduitCommandeDto): Promise<ProduitCommande> {
     const item = await this.findOne(id);
-    await this.produitCommandeRepository.update(id, dto);
+    const merged = this.produitCommandeRepository.merge(item, dto);
+    await this.produitCommandeRepository.save(merged);
     await this.commandeService.recalculerTotal(item.commandeId);
     return this.findOne(id);
   }

@@ -14,6 +14,12 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
+export enum ProductStatus {
+  DRAFT    = 'draft',
+  ACTIVE   = 'active',
+  ARCHIVED = 'archived',
+}
+
 @Entity('products')
 export class Produit {
   @PrimaryGeneratedColumn('uuid', { name: 'id' })
@@ -51,6 +57,21 @@ export class Produit {
 
   @OneToMany(() => Media, (media) => media.produit, { cascade: ['insert', 'remove'] })
   medias: Media[];
+
+  @Column({ nullable: true })
+  sku: string;
+
+  @Column({ nullable: true })
+  brand: string;
+
+  @Column({ nullable: true })
+  model: string;
+
+  @Column({ type: 'decimal', precision: 10, scale: 2, nullable: true })
+  price_eur: number;
+
+  @Column({ type: 'enum', enum: ProductStatus, default: ProductStatus.ACTIVE })
+  status: ProductStatus;
 
   @Column('boolean', { name: 'is_active', nullable: false, default: true })
   is_active: boolean;

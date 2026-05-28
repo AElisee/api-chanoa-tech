@@ -18,6 +18,11 @@ export class DeliveriesController {
     return this.deliveriesService.findAll(pagination);
   }
 
+  @Get('commande/:commandeId')
+  findByCommande(@Param('commandeId', ParseUUIDPipe) commandeId: string) {
+    return this.deliveriesService.findByCommande(commandeId);
+  }
+
   @Get(':id')
   findOne(@Param('id', ParseUUIDPipe) id: string) {
     return this.deliveriesService.findOne(id);

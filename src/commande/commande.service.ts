@@ -73,7 +73,7 @@ export class CommandeService {
     const items = await this.produitCommandeRepository.find({
       where: { commandeId },
     });
-    const total = items.reduce((sum, item) => sum + Number(item.price) * item.quantity, 0);
+    const total = items.reduce((sum, item) => sum + Number(item.unitPrice) * item.quantity, 0);
     await this.commandeRepository.update(commandeId, { total });
   }
 }

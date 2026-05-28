@@ -14,6 +14,22 @@ export class MediaService {
     private readonly mediaRepository: Repository<Media>,
   ) {}
 
+  async saveTemporary(file: Express.Multer.File): Promise<{ url: string }> {
+    const media = this.mediaRepository.create({
+      filename: file.filename,
+      originalName: file.originalname,
+      mimeType: file.mimetype,
+      size: file.size,
+      url: `/uploads/${file.filename}`,
+      type: MediaType.OTHER,
+      productId: null,
+      categoryId: null,
+      alt: null,
+    });
+    const saved = await this.mediaRepository.save(media);
+    return { url: saved.url };
+  }
+
   async saveForProduit(file: Express.Multer.File, productId: string): Promise<Media> {
     const media = this.mediaRepository.create({
       filename: file.filename,

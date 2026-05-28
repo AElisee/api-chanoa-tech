@@ -5,6 +5,8 @@ import {
   CreateDateColumn,
   DeleteDateColumn,
   Entity,
+  JoinColumn,
+  ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
@@ -32,6 +34,16 @@ export class Categorie {
 
   @Column('int', { name: 'sort_order', nullable: true, default: 0 })
   sort_order: number;
+
+  @Column({ name: 'image_url', nullable: true })
+  image_url: string;
+
+  @ManyToOne(() => Categorie, (cat) => cat.children, { nullable: true, onDelete: 'SET NULL' })
+  @JoinColumn({ name: 'parent_id' })
+  parent: Categorie;
+
+  @OneToMany(() => Categorie, (cat) => cat.parent)
+  children: Categorie[];
 
   @CreateDateColumn({ type: 'datetime', name: 'created_at' })
   createdAt: Date;

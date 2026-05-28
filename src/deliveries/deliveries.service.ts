@@ -44,4 +44,11 @@ export class DeliveriesService {
     await this.findOne(id);
     await this.deliveryRepository.softDelete(id);
   }
+
+  findByCommande(commandeId: string): Promise<Delivery | null> {
+    return this.deliveryRepository.findOne({
+      where: { commande: { id: commandeId } },
+      relations: { commande: true },
+    });
+  }
 }

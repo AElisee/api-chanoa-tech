@@ -18,7 +18,11 @@ import { ProduitPanierModule } from './produit_panier/produit_panier.module';
 import { ProduitCommandeModule } from './produit_commande/produit_commande.module';
 import { DeliveriesModule } from './deliveries/deliveries.module';
 import { MediaModule } from './media/media.module';
+import { PaymentModule } from './payment/payment.module';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
+import { ProduitVariantModule } from './produit_variant/produit-variant.module';
+import { DashboardModule } from './dashboard/dashboard.module';
+import { AdminLogsModule } from './admin-logs/admin-logs.module';
 
 @Module({
   imports: [
@@ -59,6 +63,10 @@ import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
     ProduitCommandeModule,
     DeliveriesModule,
     MediaModule,
+    PaymentModule,
+    ProduitVariantModule,
+    DashboardModule,
+    AdminLogsModule,
   ],
   controllers: [AppController],
   providers: [
