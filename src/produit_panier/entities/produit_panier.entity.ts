@@ -5,77 +5,40 @@ import {
   CreateDateColumn,
   DeleteDateColumn,
   Entity,
-  Index,
   JoinColumn,
   ManyToOne,
-  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
-  BeforeInsert,
-  BeforeUpdate,
-  BeforeRemove,
-  getManager,
 } from 'typeorm';
 
 @Entity('carts_items')
 export class ProduitPanier {
-  @PrimaryGeneratedColumn({
-    type: 'uuid',
-    name: 'id',
-    comment: 'Primary key (auto-increment)',
-  })
-  id: number;
+  @PrimaryGeneratedColumn('uuid', { name: 'id' })
+  id: string;
 
-  @Column('integer', {
-    name: 'quantity',
-    nullable: true,
-    default: 1,
-  })
+  @Column('int', { name: 'quantity', nullable: false, default: 1 })
   quantity: number;
 
-  @PrimaryColumn('integer', {
-    name: 'product_id',
-    comment: 'Foreign key to permissions table',
-  })
-  productId: number;
+  @Column({ name: 'product_id', nullable: false })
+  productId: string;
 
-  @PrimaryColumn('integer', {
-    name: 'panier_id',
-    comment: 'Foreign key to permissions table',
-  })
-  productId: number;
+  @Column({ name: 'panier_id', nullable: false })
+  panierId: string;
 
-  @CreateDateColumn({
-    type: 'timestamp with time zone',
-    name: 'created_at',
-    default: () => 'CURRENT_TIMESTAMP',
-  })
+  @CreateDateColumn({ type: 'datetime', name: 'created_at' })
   createdAt: Date;
 
-  @UpdateDateColumn({
-    type: 'timestamp with time zone',
-    name: 'updated_at',
-    default: () => 'CURRENT_TIMESTAMP',
-    onUpdate: 'CURRENT_TIMESTAMP',
-  })
+  @UpdateDateColumn({ type: 'datetime', name: 'updated_at' })
   updatedAt: Date;
 
-  @DeleteDateColumn({
-    type: 'timestamp with time zone',
-    name: 'deleted_at',
-    nullable: true,
-  })
+  @DeleteDateColumn({ type: 'datetime', name: 'deleted_at', nullable: true })
   deletedAt?: Date;
 
-  @ManyToOne(() => Produit, (produit) => produit.produitPanier, {
-    nullable: false,
-  })
+  @ManyToOne(() => Produit, (produit) => produit.produitPanier, { nullable: false })
   @JoinColumn({ name: 'product_id' })
   product: Produit;
 
-  @ManyToOne(() => Panier, (panier) => panier.produit_panier, {
-    onDelete: 'CASCADE',
-  })
+  @ManyToOne(() => Panier, (panier) => panier.items, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'panier_id' })
   panier: Panier;
 }

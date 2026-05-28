@@ -1,72 +1,38 @@
 import {
-  BeforeInsert,
   Column,
   CreateDateColumn,
   DeleteDateColumn,
   Entity,
-  Index,
-  JoinColumn,
-  ManyToOne,
-  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 
 @Entity('users')
 export class User {
-  @PrimaryGeneratedColumn({ type: 'uuid', name: 'id' })
-  id: number;
+  @PrimaryGeneratedColumn('uuid', { name: 'id' })
+  id: string;
 
-  @Column('varchar', {
-    name: 'email',
-    length: 100,
-    unique: true,
-    nullable: false,
-  })
+  @Column('varchar', { name: 'email', length: 100, unique: true, nullable: false })
   email: string;
 
-  @Column('varchar', {
-    name: 'full_name', // Convention PostgreSQL snake_case
-    length: 255,
-    nullable: false,
-  })
+  @Column('varchar', { name: 'full_name', length: 255, nullable: false })
   name: string;
 
-  @Column('varchar', {
-    name: 'phone',
-    length: 20,
-    nullable: true,
-  })
+  @Column('varchar', { name: 'phone', length: 20, nullable: true })
   phone: string;
 
-  @Column('varchar', {
-    name: 'role',
-    nullable: false,
-  })
+  @Column('varchar', { name: 'password', nullable: false, select: false })
+  password: string;
+
+  @Column('varchar', { name: 'role', nullable: false, default: 'client' })
   role: string;
 
-  @CreateDateColumn({
-    type: 'timestamp with time zone',
-    name: 'created_at',
-    default: () => 'CURRENT_TIMESTAMP',
-    precision: 3,
-  })
+  @CreateDateColumn({ type: 'datetime', name: 'created_at' })
   createdAt: Date;
 
-  @UpdateDateColumn({
-    type: 'timestamp with time zone',
-    name: 'updated_at',
-    default: () => 'CURRENT_TIMESTAMP',
-    onUpdate: 'CURRENT_TIMESTAMP',
-    precision: 3,
-  })
+  @UpdateDateColumn({ type: 'datetime', name: 'updated_at' })
   updatedAt: Date;
 
-  @DeleteDateColumn({
-    type: 'timestamp with time zone',
-    name: 'deleted_at',
-    nullable: true,
-    precision: 3,
-  })
-  delectedAt: Date | null;
+  @DeleteDateColumn({ type: 'datetime', name: 'deleted_at', nullable: true })
+  deletedAt: Date | null;
 }

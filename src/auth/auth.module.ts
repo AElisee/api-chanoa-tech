@@ -1,23 +1,25 @@
 import { Module } from '@nestjs/common';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
-import { UsersModule } from '../users/users.module';
 import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
 import { LocalStrategy } from './strategies/local.strategy';
 import { JwtStrategy } from './strategies/jwt.strategy';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { UserSession } from '../security/entities/user-session.entity';
+import { UserModule } from '../user/user.module';
 
 @Module({
   imports: [
-    UsersModule,
+    UserModule,
     PassportModule,
-    JwtModule.register({
-      secret: 'REPLACE_THIS_WITH_A_REAL_SECRET_LATER', // TODO: Use environment variables
-      signOptions: { expiresIn: '60m' },
+    JwtModule.registerAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => ({
+        secret: config.get<string>('JWT_SECRET'),
+        signOptions: { expiresIn: config.get<string>('JWT_EXPIRES_IN') },
+      }),
     }),
-    TypeOrmModule.forFeature([UserSession]),
   ],
   controllers: [AuthController],
   providers: [AuthService, LocalStrategy, JwtStrategy],

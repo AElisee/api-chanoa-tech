@@ -1,18 +1,17 @@
+import { User } from 'src/user/entities/user.entity';
+import { ProduitCommande } from 'src/produit_commande/entities/produit_commande.entity';
+import { Delivery } from 'src/deliveries/entities/delivery.entity';
 import {
   Column,
   CreateDateColumn,
   DeleteDateColumn,
   Entity,
-  Index,
   JoinColumn,
   ManyToOne,
   OneToMany,
+  OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
-  BeforeInsert,
-  BeforeUpdate,
-  BeforeRemove,
-  getManager,
 } from 'typeorm';
 
 export enum OrderStatus {
@@ -27,23 +26,18 @@ export enum OrderStatus {
 
 @Entity('orders')
 export class Commande {
-  @PrimaryGeneratedColumn({
-    type: 'uuid',
-    name: 'id',
-    comment: 'Primary key (auto-increment)',
-  })
-  id: number;
+  @PrimaryGeneratedColumn('uuid', { name: 'id' })
+  id: string;
 
   @Column({
     type: 'enum',
     enum: OrderStatus,
-    enumName: 'order_status_enum',
     default: OrderStatus.PENDING,
     comment: 'Current status of the order',
   })
-  status?: OrderStatus;
+  status: OrderStatus;
 
-  @Column('numeric', {
+  @Column('decimal', {
     precision: 12,
     scale: 2,
     comment: 'Total order amount',
@@ -51,33 +45,29 @@ export class Commande {
   })
   total: number;
 
-  @Column('varchar', {
-    name: 'notes',
-    length: 225,
-    nullable: true,
-    comment: 'Name of the sales person',
-  })
+  @Column('varchar', { name: 'notes', length: 255, nullable: true })
   notes: string;
 
-  @CreateDateColumn({
-    type: 'timestamp with time zone',
-    name: 'created_at',
-    default: () => 'CURRENT_TIMESTAMP',
-  })
+  @Column({ name: 'user_id', nullable: true })
+  userId: string | null;
+
+  @CreateDateColumn({ type: 'datetime', name: 'created_at' })
   createdAt: Date;
 
-  @UpdateDateColumn({
-    type: 'timestamp with time zone',
-    name: 'updated_at',
-    default: () => 'CURRENT_TIMESTAMP',
-    onUpdate: 'CURRENT_TIMESTAMP',
-  })
+  @UpdateDateColumn({ type: 'datetime', name: 'updated_at' })
   updatedAt: Date;
 
-  @DeleteDateColumn({
-    type: 'timestamp with time zone',
-    name: 'deleted_at',
-    nullable: true,
-  })
+  @DeleteDateColumn({ type: 'datetime', name: 'deleted_at', nullable: true })
   deletedAt?: Date;
+
+  @ManyToOne(() => User, { nullable: true, onDelete: 'SET NULL' })
+  @JoinColumn({ name: 'user_id' })
+  user: User;
+
+  @OneToMany(() => ProduitCommande, (item) => item.commande, { cascade: true })
+  items: ProduitCommande[];
+
+  @OneToOne(() => Delivery, (delivery) => delivery.commande, { nullable: true, cascade: true })
+  @JoinColumn()
+  delivery: Delivery;
 }

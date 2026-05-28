@@ -5,20 +5,24 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 @Module({
   imports: [
     TypeOrmModule.forRootAsync({
-      imports:[ConfigModule],
+      imports: [ConfigModule],
       inject: [ConfigService],
-      
       useFactory: (configService: ConfigService) => ({
-          type: 'postgres',
-          url: configService.get<string>('DATABASE_URL'),
-          autoLoadEntities: true,
-          synchronize: true,
-          keepConnectionAlive: true,
-          connectTimeoutMS: 10000,
-          retryAttempts: 5,
-          retryDelay: 3000,
-        })
-    })
+        type: 'mysql',
+        host: configService.get<string>('DB_HOST'),
+        port: configService.get<number>('DB_PORT'),
+        username: configService.get<string>('DB_USERNAME'),
+        password: configService.get<string>('DB_PASSWORD'),
+        database: configService.get<string>('DB_NAME'),
+        charset: 'utf8mb4',
+        autoLoadEntities: true,
+        synchronize: true,
+        keepConnectionAlive: true,
+        connectTimeout: 10000,
+        retryAttempts: 5,
+        retryDelay: 3000,
+      }),
+    }),
   ],
 })
 export class DatabaseModule {}

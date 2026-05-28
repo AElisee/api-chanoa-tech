@@ -3,51 +3,31 @@ import { ProduitCommande } from 'src/produit_commande/entities/produit_commande.
 import { ProduitPanier } from 'src/produit_panier/entities/produit_panier.entity';
 import {
   Column,
+  CreateDateColumn,
+  DeleteDateColumn,
   Entity,
   JoinColumn,
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
-  Index,
-  CreateDateColumn,
   UpdateDateColumn,
-  DeleteDateColumn,
-  ManyToMany,
-  JoinTable,
-  BeforeInsert,
-  BeforeUpdate,
 } from 'typeorm';
 
 @Entity('products')
 export class Produit {
-  @PrimaryGeneratedColumn('increment', {
-    type: 'uuid',
-    name: 'id',
-    comment: 'Primary key (auto-increment)',
-  })
-  id: number;
+  @PrimaryGeneratedColumn('uuid', { name: 'id' })
+  id: string;
 
-  @Column('varchar', {
-    length: 100,
-    nullable: false,
-    name: 'name',
-  })
+  @Column('varchar', { length: 100, nullable: false, name: 'name' })
   name: string;
 
-  @Column('varchar', {
-    name: 'slug',
-    unique: true,
-    nullable: false,
-  })
+  @Column('varchar', { name: 'slug', unique: true, nullable: false })
   slug: string;
 
-  @Column('text', {
-    name: 'description',
-    nullable: true,
-  })
+  @Column('text', { name: 'description', nullable: true })
   description: string;
 
-  @Column('numeric', {
+  @Column('decimal', {
     precision: 12,
     scale: 2,
     name: 'price',
@@ -56,8 +36,8 @@ export class Produit {
   })
   price: number;
 
-  @Column('numeric', {
-    name: 'compare_price ',
+  @Column('decimal', {
+    name: 'compare_price',
     precision: 10,
     scale: 2,
     nullable: false,
@@ -65,75 +45,40 @@ export class Produit {
   })
   compare_price: number;
 
-  @Column('numeric', {
-    name: 'stock',
-    nullable: true,
-    comment: 'Price per single unit',
-  })
+  @Column('decimal', { name: 'stock', precision: 12, scale: 2, nullable: true })
   stock: number;
 
-  @Column('text', {
-    name: 'images',
-    nullable: true,
-  })
-  images: string[]; // prevoir une entité image
+  @Column('json', { name: 'images', nullable: true })
+  images: string[];
 
-  @Column('boolean', {
-    name: 'is_active',
-    nullable: false,
-    default: true,
-  })
+  @Column('boolean', { name: 'is_active', nullable: false, default: true })
   is_active: boolean;
 
-  @Column('varchar', {
-    name: 'search_vector',
-  })
+  @Column('varchar', { name: 'search_vector', nullable: true })
   search_vector: string;
 
-  @Column({
-    name: 'categorie_id',
-    nullable: true,
-  })
-  categoryId: number | null;
+  @Column({ name: 'categorie_id', nullable: true })
+  categoryId: string | null;
 
-  @CreateDateColumn({
-    type: 'timestamp with time zone',
-    name: 'created_at',
-    default: () => 'CURRENT_TIMESTAMP',
-  })
+  @CreateDateColumn({ type: 'datetime', name: 'created_at' })
   createdAt: Date;
 
-  @UpdateDateColumn({
-    type: 'timestamp with time zone',
-    name: 'updated_at',
-    default: () => 'CURRENT_TIMESTAMP',
-    onUpdate: 'CURRENT_TIMESTAMP',
-  })
+  @UpdateDateColumn({ type: 'datetime', name: 'updated_at' })
   updatedAt: Date;
 
-  @DeleteDateColumn({
-    type: 'timestamp with time zone',
-    name: 'deleted_at',
-    nullable: true,
-  })
+  @DeleteDateColumn({ type: 'datetime', name: 'deleted_at', nullable: true })
   deletedAt?: Date;
 
-  @ManyToOne(() => Categorie, (category) => category.product, {
-    onDelete: 'CASCADE', // Suppression en cascade si hard delete
-    orphanedRowAction: 'soft-delete', // Soft delete si la catégorie est supprimée
+  @ManyToOne(() => Categorie, (categorie) => categorie.produits, {
+    onDelete: 'SET NULL',
+    nullable: true,
   })
-  @JoinColumn({
-    name: 'categorie_id',
-    referencedColumnName: 'id',
-  })
+  @JoinColumn({ name: 'categorie_id', referencedColumnName: 'id' })
   categorie: Categorie;
 
   @OneToMany(() => ProduitPanier, (produitPanier) => produitPanier.product)
-  produiPanier: ProduitPanier[];
+  produitPanier: ProduitPanier[];
 
-  @OneToMany(
-    () => ProduitCommande,
-    (produitCommande) => produitCommande.product,
-  )
+  @OneToMany(() => ProduitCommande, (produitCommande) => produitCommande.product)
   produitCommande: ProduitCommande[];
 }

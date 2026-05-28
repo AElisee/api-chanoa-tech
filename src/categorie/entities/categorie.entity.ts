@@ -4,91 +4,45 @@ import {
   CreateDateColumn,
   DeleteDateColumn,
   Entity,
-  Index,
-  JoinColumn,
-  ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
-  BeforeInsert,
-  BeforeUpdate,
-  BeforeRemove,
-  getManager,
 } from 'typeorm';
 
 @Entity('categories')
 export class Categorie {
-  @PrimaryGeneratedColumn({
-    type: 'uuid',
-    name: 'id',
-    comment: 'Primary key (auto-increment)',
-  })
-  id: number;
+  @PrimaryGeneratedColumn('uuid', { name: 'id' })
+  id: string;
 
-  @Column('varchar', {
-    name: 'name',
-    length: 100,
-    nullable: false,
-    comment: 'Display name of the category',
-  })
+  @Column('varchar', { name: 'name', length: 100, nullable: false })
   name: string;
 
-  @Column('varchar', {
-    name: 'slug',
-    unique: true,
-    nullable: false,
-  })
+  @Column('varchar', { name: 'slug', unique: true, nullable: false })
   slug: string;
 
-  @Column('text', {
-    name: 'description',
-    nullable: true,
-    comment: 'Detailed description of the category',
-  })
+  @Column('text', { name: 'description', nullable: true })
   description?: string;
 
-  @Column('text', {
-    name: 'image_url',
-  })
+  @Column('text', { name: 'image_url', nullable: true })
   image_url?: string;
 
-  @Column('boolean', {
-    name: 'is_active',
-    nullable: false,
-    default: true,
-  })
+  @Column('boolean', { name: 'is_active', nullable: false, default: true })
   is_active: boolean;
 
-  @Column('integer', {
-    name: 'sort_order',
-  })
+  @Column('int', { name: 'sort_order', nullable: true, default: 0 })
   sort_order: number;
 
-  @CreateDateColumn({
-    type: 'timestamp with time zone',
-    name: 'created_at',
-    default: () => 'CURRENT_TIMESTAMP',
-  })
+  @CreateDateColumn({ type: 'datetime', name: 'created_at' })
   createdAt: Date;
 
-  @UpdateDateColumn({
-    type: 'timestamp with time zone',
-    name: 'updated_at',
-    default: () => 'CURRENT_TIMESTAMP',
-    onUpdate: 'CURRENT_TIMESTAMP',
-  })
+  @UpdateDateColumn({ type: 'datetime', name: 'updated_at' })
   updatedAt: Date;
 
-  @DeleteDateColumn({
-    type: 'timestamp with time zone',
-    name: 'deleted_at',
-    nullable: true,
-  })
+  @DeleteDateColumn({ type: 'datetime', name: 'deleted_at', nullable: true })
   deletedAt?: Date;
 
-  // Relation avec produit
-  @OneToMany(() => Produit, (product) => product.categorie, {
-    cascade: ['soft-remove'], // Soft remove en cascade
+  @OneToMany(() => Produit, (produit) => produit.categorie, {
+    cascade: ['soft-remove'],
   })
-  product: Product[];
+  produits: Produit[];
 }

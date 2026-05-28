@@ -1,86 +1,46 @@
+import { Commande } from 'src/commande/entities/commande.entity';
 import {
   Column,
   CreateDateColumn,
   DeleteDateColumn,
   Entity,
-  Index,
-  JoinColumn,
-  ManyToOne,
-  OneToMany,
+  OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
-  BeforeInsert,
-  BeforeUpdate,
-  BeforeRemove,
-  getManager,
 } from 'typeorm';
 
 @Entity('deliveries')
 export class Delivery {
-  @PrimaryGeneratedColumn({
-    type: 'uuid',
-    name: 'id',
-    comment: 'Primary key (auto-increment)',
-  })
-  id: number;
+  @PrimaryGeneratedColumn('uuid', { name: 'id' })
+  id: string;
 
-  @Column('varchar', {
-    name: 'tracking_number',
-    length: 100,
-  })
+  @Column('varchar', { name: 'tracking_number', length: 100, nullable: true })
   tracking_number: string;
 
-  @Column('varchar', {
-    name: 'carrier',
-    length: 100,
-  })
+  @Column('varchar', { name: 'carrier', length: 100, nullable: true })
   carrier: string;
 
-  @Column('varchar', {
-    name: 'status',
-    length: 100,
-  })
+  @Column('varchar', { name: 'status', length: 100, nullable: false, default: 'pending' })
   status: string;
 
-  @Column('varchar', {
-    name: 'notes',
-    length: 100,
-  })
+  @Column('varchar', { name: 'notes', length: 255, nullable: true })
   notes: string;
 
-  @Column('timestamp with time zone', {
-    name: 'shipped_at',
-    nullable: true,
-    comment: 'Estimated/Actual delivery date',
-  })
+  @Column('datetime', { name: 'shipped_at', nullable: true })
   shipped_at: Date | null;
 
-  @Column('timestamp with time zone', {
-    name: 'delivered_at',
-    nullable: true,
-    comment: 'Estimated/Actual delivery date',
-  })
+  @Column('datetime', { name: 'delivered_at', nullable: true })
   delivered_at: Date | null;
 
-  @CreateDateColumn({
-    type: 'timestamp with time zone',
-    name: 'created_at',
-    default: () => 'CURRENT_TIMESTAMP',
-  })
+  @CreateDateColumn({ type: 'datetime', name: 'created_at' })
   createdAt: Date;
 
-  @UpdateDateColumn({
-    type: 'timestamp with time zone',
-    name: 'updated_at',
-    default: () => 'CURRENT_TIMESTAMP',
-    onUpdate: 'CURRENT_TIMESTAMP',
-  })
+  @UpdateDateColumn({ type: 'datetime', name: 'updated_at' })
   updatedAt: Date;
 
-  @DeleteDateColumn({
-    type: 'timestamp with time zone',
-    name: 'deleted_at',
-    nullable: true,
-  })
+  @DeleteDateColumn({ type: 'datetime', name: 'deleted_at', nullable: true })
   deletedAt?: Date;
+
+  @OneToOne(() => Commande, (commande) => commande.delivery, { nullable: true })
+  commande: Commande;
 }
