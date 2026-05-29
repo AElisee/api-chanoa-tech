@@ -9,12 +9,14 @@ import { LocalStrategy } from './strategies/local.strategy';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserSession } from '../security/entities/user-session.entity';
+import { MailModule } from '../mail/mail.module';
 
 @Module({
   imports: [
     UserModule,
     PassportModule,
     ConfigModule,
+    MailModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],

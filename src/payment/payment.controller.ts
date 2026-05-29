@@ -3,39 +3,44 @@ import {
   Controller,
   Get,
   Headers,
+  HttpCode,
   Param,
   Post,
   Request,
-  UseGuards,
 } from '@nestjs/common';
 import { Request as ExpressRequest } from 'express';
 import { PaymentService } from './payment.service';
 import { Public } from '../auth/decorators/public.decorator';
+import { RequiredPermission } from '../auth/decorators/permissions.decorator';
 
 @Controller('payment')
 export class PaymentController {
   constructor(private readonly paymentService: PaymentService) {}
 
   @Post('initiate')
+  @RequiredPermission('client', 'admin')
   initiate(
-    @Body() body: { orderId: string },
-    @Request() req: ExpressRequest & { user: { id: string } },
+    @Body('orderId') orderId: string,
+    @Request() req: ExpressRequest & { user: { id: string; name?: string; email?: string; phone?: string } },
   ) {
-    return this.paymentService.initiatePayment(body.orderId, req.user.id);
+    return this.paymentService.initiatePayment(orderId, req.user);
   }
 
   // Webhook : sécurisé par signature HMAC uniquement — pas de JwtAuthGuard
   @Public()
   @Post('webhook')
-  webhook(
+  @HttpCode(200)
+  async webhook(
     @Body() payload: Record<string, unknown>,
-    @Headers('x-geniuspay-signature') sig: string,
+    @Headers() headers: Record<string, string>,
   ) {
-    return this.paymentService.handleWebhook(payload, sig);
+    await this.paymentService.handleWebhook(payload, headers);
+    return { received: true };
   }
 
+  @Public()
   @Get('status/:reference')
-  status(@Param('reference') reference: string) {
+  getStatus(@Param('reference') reference: string) {
     return this.paymentService.getPaymentStatus(reference);
   }
 }

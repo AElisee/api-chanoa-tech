@@ -1,4 +1,5 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, ParseUUIDPipe } from '@nestjs/common';
+import { RequiredPermission } from '../auth/decorators/permissions.decorator';
 import { ProduitPanierService } from './produit_panier.service';
 import { CreateProduitPanierDto } from './dto/create-produit_panier.dto';
 import { UpdateProduitPanierDto } from './dto/update-produit_panier.dto';
@@ -12,6 +13,7 @@ export class ProduitPanierController {
     return this.produitPanierService.create(dto);
   }
 
+  @RequiredPermission('admin')
   @Get()
   findAll() {
     return this.produitPanierService.findAll();

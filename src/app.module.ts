@@ -20,6 +20,7 @@ import { DeliveriesModule } from './deliveries/deliveries.module';
 import { MediaModule } from './media/media.module';
 import { PaymentModule } from './payment/payment.module';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
+import { PermissionsGuard } from './auth/guards/permissions.guard';
 import { ProduitVariantModule } from './produit_variant/produit-variant.module';
 import { DashboardModule } from './dashboard/dashboard.module';
 import { AdminLogsModule } from './admin-logs/admin-logs.module';
@@ -40,6 +41,7 @@ import { AdminLogsModule } from './admin-logs/admin-logs.module';
         JWT_EXPIRES_IN: Joi.string().default('60m'),
         JWT_REFRESH_SECRET: Joi.string().required(),
         JWT_REFRESH_EXPIRES_IN: Joi.string().default('7d'),
+        GENIUSPAY_API_SECRET: Joi.string().required(),
       }),
     }),
     ThrottlerModule.forRoot([{
@@ -72,6 +74,7 @@ import { AdminLogsModule } from './admin-logs/admin-logs.module';
   providers: [
     AppService,
     { provide: APP_GUARD, useClass: JwtAuthGuard },
+    { provide: APP_GUARD, useClass: PermissionsGuard },
     { provide: APP_GUARD, useClass: ThrottlerGuard },
   ],
 })

@@ -14,6 +14,7 @@ import { CreateProduitVariantDto } from './dto/create-produit-variant.dto';
 import { UpdateProduitVariantDto } from './dto/update-produit-variant.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { Public } from '../auth/decorators/public.decorator';
+import { RequiredPermission } from '../auth/decorators/permissions.decorator';
 
 @Controller('produits/:productId/variants')
 export class ProduitVariantController {
@@ -25,6 +26,7 @@ export class ProduitVariantController {
     return this.produitVariantService.findByProduct(productId);
   }
 
+  @RequiredPermission('admin')
   @UseGuards(JwtAuthGuard)
   @Post()
   create(
@@ -34,6 +36,7 @@ export class ProduitVariantController {
     return this.produitVariantService.create(productId, dto);
   }
 
+  @RequiredPermission('admin')
   @UseGuards(JwtAuthGuard)
   @Patch(':id')
   update(
@@ -44,6 +47,7 @@ export class ProduitVariantController {
     return this.produitVariantService.update(id, dto);
   }
 
+  @RequiredPermission('admin')
   @UseGuards(JwtAuthGuard)
   @Delete(':id')
   remove(

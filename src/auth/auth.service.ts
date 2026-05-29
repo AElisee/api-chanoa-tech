@@ -8,6 +8,7 @@ import { UserSession } from '../security/entities/user-session.entity';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Request } from 'express';
+import { MailService } from '../mail/mail.service';
 
 @Injectable()
 export class AuthService {
@@ -16,6 +17,7 @@ export class AuthService {
     private readonly jwtService: JwtService,
     @InjectRepository(UserSession)
     private readonly sessionRepository: Repository<UserSession>,
+    private readonly mailService: MailService,
   ) {}
 
   async validateUser(email: string, pass: string): Promise<User | null> {
@@ -93,7 +95,7 @@ export class AuthService {
 
     await this.usersService.setPasswordResetToken(user.id, resetToken, expires);
 
-    // TODO: envoyer l'email avec le resetToken
+    await this.mailService.sendPasswordReset(user.email, resetToken);
     return { message: 'Si cet email existe, un lien de réinitialisation a été envoyé.' };
   }
 

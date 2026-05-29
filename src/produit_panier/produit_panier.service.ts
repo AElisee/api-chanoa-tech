@@ -16,12 +16,9 @@ export class ProduitPanierService {
   ) {}
 
   async create(dto: CreateProduitPanierDto): Promise<ProduitPanier> {
-    let unitPrice = dto.unitPrice;
-    if (unitPrice === undefined) {
-      const produit = await this.produitRepository.findOne({ where: { id: dto.productId } });
-      if (!produit) throw new NotFoundException(`Produit #${dto.productId} introuvable`);
-      unitPrice = Number(produit.price);
-    }
+    const produit = await this.produitRepository.findOne({ where: { id: dto.productId } });
+    if (!produit) throw new NotFoundException(`Produit #${dto.productId} introuvable`);
+    const unitPrice = Number(produit.price);
 
     const existing = await this.produitPanierRepository.findOne({
       where: { productId: dto.productId, panierId: dto.panierId },

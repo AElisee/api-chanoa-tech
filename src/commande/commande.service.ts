@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Commande, OrderStatus } from './entities/commande.entity';
@@ -7,6 +7,7 @@ import { ProduitsService } from '../produits/produits.service';
 import { CreateCommandeDto } from './dto/create-commande.dto';
 import { UpdateCommandeDto } from './dto/update-commande.dto';
 import { PaginationDto } from '../common/dto/pagination.dto';
+import { User } from '../user/entities/user.entity';
 
 @Injectable()
 export class CommandeService {
@@ -23,9 +24,11 @@ export class CommandeService {
     return this.commandeRepository.save(commande);
   }
 
-  async findAll(pagination: PaginationDto = {}) {
+  async findAll(pagination: PaginationDto = {}, requestingUser?: User) {
     const { page = 1, limit = 20 } = pagination;
+    const where = requestingUser?.role === 'client' ? { userId: requestingUser.id } : {};
     const [data, total] = await this.commandeRepository.findAndCount({
+      where,
       relations: { user: true, items: { product: true }, delivery: true },
       order: { createdAt: 'DESC' },
       skip: (page - 1) * limit,
@@ -34,12 +37,15 @@ export class CommandeService {
     return { data, total, page, limit, totalPages: Math.ceil(total / limit) };
   }
 
-  async findOne(id: string): Promise<Commande> {
+  async findOne(id: string, requestingUser?: User): Promise<Commande> {
     const commande = await this.commandeRepository.findOne({
       where: { id },
       relations: { user: true, items: { product: true }, delivery: true },
     });
     if (!commande) throw new NotFoundException(`Commande #${id} introuvable`);
+    if (requestingUser?.role === 'client' && commande.userId !== requestingUser.id) {
+      throw new ForbiddenException('Accès refusé : cette commande ne vous appartient pas');
+    }
     return commande;
   }
 
@@ -54,8 +60,11 @@ export class CommandeService {
   async update(id: string, dto: UpdateCommandeDto): Promise<Commande> {
     const commande = await this.findOne(id);
 
-    if (dto.status === OrderStatus.PROCESSING && commande.status === OrderStatus.PENDING) {
-      for (const item of commande.items) {
+    if (dto.status === OrderStatus.CONFIRMED && commande.status !== OrderStatus.CONFIRMED) {
+      const items = await this.produitCommandeRepository.find({
+        where: { commandeId: id },
+      });
+      for (const item of items) {
         await this.produitsService.decrementStock(item.productId, item.quantity);
       }
     }

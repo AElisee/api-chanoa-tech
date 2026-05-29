@@ -1,4 +1,4 @@
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { ConflictException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
@@ -33,9 +33,12 @@ export class UserService {
     return { data, total, page, limit, totalPages: Math.ceil(total / limit) };
   }
 
-  async findOne(id: string): Promise<User> {
+  async findOne(id: string, requestingUser?: User): Promise<User> {
     const user = await this.userRepository.findOne({ where: { id } });
     if (!user) throw new NotFoundException(`Utilisateur #${id} introuvable`);
+    if (requestingUser && requestingUser.role !== 'admin' && requestingUser.id !== id) {
+      throw new ForbiddenException('Accès refusé : vous ne pouvez consulter que votre propre profil');
+    }
     return user;
   }
 
@@ -47,8 +50,11 @@ export class UserService {
       .getOne();
   }
 
-  async update(id: string, dto: UpdateUserDto): Promise<User> {
-    await this.findOne(id);
+  async update(id: string, dto: UpdateUserDto, requestingUser?: User): Promise<User> {
+    await this.findOne(id, requestingUser);
+    if (requestingUser && requestingUser.role !== 'admin') {
+      delete dto.role;
+    }
     if (dto.password) {
       dto.password = await bcrypt.hash(dto.password, 10);
     }
