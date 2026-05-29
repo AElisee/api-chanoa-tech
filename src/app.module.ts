@@ -24,6 +24,7 @@ import { PermissionsGuard } from './auth/guards/permissions.guard';
 import { ProduitVariantModule } from './produit_variant/produit-variant.module';
 import { DashboardModule } from './dashboard/dashboard.module';
 import { AdminLogsModule } from './admin-logs/admin-logs.module';
+import { SeedModule } from './seed/seed.module';
 
 @Module({
   imports: [
@@ -42,6 +43,9 @@ import { AdminLogsModule } from './admin-logs/admin-logs.module';
         JWT_REFRESH_SECRET: Joi.string().required(),
         JWT_REFRESH_EXPIRES_IN: Joi.string().default('7d'),
         GENIUSPAY_API_SECRET: Joi.string().required(),
+        DEFAULT_ADMIN_EMAIL: Joi.string().email().required(),
+        DEFAULT_ADMIN_PASSWORD: Joi.string().min(8).required(),
+        DEFAULT_ADMIN_NAME: Joi.string().required(),
       }),
     }),
     ThrottlerModule.forRoot([{
@@ -52,7 +56,6 @@ import { AdminLogsModule } from './admin-logs/admin-logs.module';
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', 'uploads'),
       serveRoot: '/uploads',
-      exclude: ['/api*'],
     }),
     DatabaseModule,
     AuthModule,
@@ -69,6 +72,7 @@ import { AdminLogsModule } from './admin-logs/admin-logs.module';
     ProduitVariantModule,
     DashboardModule,
     AdminLogsModule,
+    SeedModule,
   ],
   controllers: [AppController],
   providers: [
