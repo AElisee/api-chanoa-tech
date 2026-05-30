@@ -45,25 +45,39 @@ export class CategorieService {
 
   async findAll(pagination: PaginationDto = {}, requestingUser?: any) {
     const { page = 1, limit = 20 } = pagination;
+    const isAdmin = requestingUser?.role === 'admin';
+    const where: any = {};
+    if (!isAdmin) where.is_active = true;
 
-    const qb = this.categorieRepository
-      .createQueryBuilder('cat')
-      .loadRelationCountAndMap(
-        'cat.product_count',
-        'cat.produits',
-        'p',
-        (qb) => qb.andWhere('p.is_active = :pActive', { pActive: true }),
-      )
-      .orderBy('cat.sort_order', 'ASC')
-      .addOrderBy('cat.name', 'ASC')
-      .skip((page - 1) * limit)
-      .take(limit);
+    const [data, total] = await this.categorieRepository.findAndCount({
+      where,
+      order: { sort_order: 'ASC' },
+      skip: (page - 1) * limit,
+      take: limit,
+    });
 
-    if (!requestingUser || requestingUser.role !== 'admin') {
-      qb.where('cat.is_active = :catActive', { catActive: true });
+    if (data.length > 0) {
+      const ids = data.map((c) => c.id);
+      const counts = await this.categorieRepository
+        .createQueryBuilder('cat')
+        .select('cat.id', 'catId')
+        .addSelect('COUNT(p.id)', 'cnt')
+        .leftJoin(
+          'cat.produits',
+          'p',
+          'p.is_active = :active AND p.deleted_at IS NULL',
+          { active: true },
+        )
+        .where('cat.id IN (:...ids)', { ids })
+        .groupBy('cat.id')
+        .getRawMany<{ catId: string; cnt: string }>();
+
+      const countMap = new Map(counts.map((r) => [r.catId, Number(r.cnt)]));
+      for (const cat of data) {
+        (cat as any).product_count = countMap.get(cat.id) ?? 0;
+      }
     }
 
-    const [data, total] = await qb.getManyAndCount();
     return { data, total, page, limit, totalPages: Math.ceil(total / limit) };
   }
 
