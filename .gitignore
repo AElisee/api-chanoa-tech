@@ -1,3 +1,11 @@
+# Fichiers temporaires Microsoft Office (verrous Excel/Word)
+~$*
+
+# Fichiers de données (ne pas versionner)
+*.xlsx
+*.xls
+*.csv
+
 # compiled output
 /dist
 /node_modules
