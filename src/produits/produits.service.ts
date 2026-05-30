@@ -38,13 +38,21 @@ export class ProduitsService {
   }
 
   async findAll(pagination: GetProduitsDto = {}, requestingUser?: any) {
-    const { page = 1, limit = 20, search, categoryId } = pagination;
+    const { page = 1, limit = 20, search, categoryId, brand, tri = 'recent' } = pagination;
     const isAdmin = requestingUser?.role === 'admin';
+
+    const sortMap: Record<string, { col: string; dir: 'ASC' | 'DESC' }> = {
+      recent:     { col: 'p.createdAt', dir: 'DESC' },
+      price_asc:  { col: 'p.price',     dir: 'ASC'  },
+      price_desc: { col: 'p.price',     dir: 'DESC' },
+      name_asc:   { col: 'p.name',      dir: 'ASC'  },
+    };
+    const sort = sortMap[tri] ?? sortMap['recent'];
 
     const qb = this.produitRepository
       .createQueryBuilder('p')
       .leftJoinAndSelect('p.categorie', 'categorie')
-      .orderBy('p.createdAt', 'DESC')
+      .orderBy(sort.col, sort.dir)
       .skip((page - 1) * limit)
       .take(limit);
 
@@ -54,6 +62,10 @@ export class ProduitsService {
 
     if (categoryId) {
       qb.andWhere('p.categoryId = :categoryId', { categoryId });
+    }
+
+    if (brand?.trim()) {
+      qb.andWhere('p.brand = :brand', { brand: brand.trim() });
     }
 
     if (search?.trim()) {
