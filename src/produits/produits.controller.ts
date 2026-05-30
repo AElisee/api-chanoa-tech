@@ -1,11 +1,14 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, ParseUUIDPipe, Query } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, ParseUUIDPipe, Query, UseGuards, Request } from '@nestjs/common';
+import { SkipThrottle } from '@nestjs/throttler';
 import { ProduitsService } from './produits.service';
 import { CreateProduitDto } from './dto/create-produit.dto';
 import { UpdateProduitDto } from './dto/update-produit.dto';
 import { Public } from '../auth/decorators/public.decorator';
 import { RequiredPermission } from '../auth/decorators/permissions.decorator';
 import { PaginationDto } from '../common/dto/pagination.dto';
+import { OptionalJwtGuard } from '../auth/guards/optional-jwt.guard';
 
+@SkipThrottle()
 @Controller('produits')
 export class ProduitsController {
   constructor(private readonly produitsService: ProduitsService) {}
@@ -17,9 +20,10 @@ export class ProduitsController {
   }
 
   @Public()
+  @UseGuards(OptionalJwtGuard)
   @Get()
-  findAll(@Query() pagination: PaginationDto) {
-    return this.produitsService.findAll(pagination);
+  findAll(@Query() pagination: PaginationDto, @Request() req: any) {
+    return this.produitsService.findAll(pagination, req.user);
   }
 
   @Public()

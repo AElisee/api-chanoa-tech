@@ -9,6 +9,7 @@ import {
   Post,
   UseGuards,
 } from '@nestjs/common';
+import { SkipThrottle } from '@nestjs/throttler';
 import { ProduitVariantService } from './produit-variant.service';
 import { CreateProduitVariantDto } from './dto/create-produit-variant.dto';
 import { UpdateProduitVariantDto } from './dto/update-produit-variant.dto';
@@ -16,6 +17,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { Public } from '../auth/decorators/public.decorator';
 import { RequiredPermission } from '../auth/decorators/permissions.decorator';
 
+@SkipThrottle()
 @Controller('produits/:productId/variants')
 export class ProduitVariantController {
   constructor(private readonly produitVariantService: ProduitVariantService) {}

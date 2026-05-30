@@ -37,10 +37,14 @@ export class ProduitsService {
     return this.produitRepository.save(produit);
   }
 
-  async findAll(pagination: PaginationDto = {}) {
+  async findAll(pagination: PaginationDto = {}, requestingUser?: any) {
     const { page = 1, limit = 20 } = pagination;
+    const where: any = {};
+    if (!requestingUser || requestingUser.role !== 'admin') {
+      where.is_active = true;
+    }
     const [data, total] = await this.produitRepository.findAndCount({
-      where: { is_active: true },
+      where,
       relations: { categorie: true },
       order: { createdAt: 'DESC' },
       skip: (page - 1) * limit,

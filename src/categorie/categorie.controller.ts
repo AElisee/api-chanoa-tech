@@ -1,11 +1,14 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, ParseUUIDPipe, Query } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, ParseUUIDPipe, Query, UseGuards, Request } from '@nestjs/common';
+import { SkipThrottle } from '@nestjs/throttler';
 import { CategorieService } from './categorie.service';
 import { CreateCategorieDto } from './dto/create-categorie.dto';
 import { UpdateCategorieDto } from './dto/update-categorie.dto';
 import { Public } from '../auth/decorators/public.decorator';
 import { RequiredPermission } from '../auth/decorators/permissions.decorator';
 import { PaginationDto } from '../common/dto/pagination.dto';
+import { OptionalJwtGuard } from '../auth/guards/optional-jwt.guard';
 
+@SkipThrottle()
 @Controller('categorie')
 export class CategorieController {
   constructor(private readonly categorieService: CategorieService) {}
@@ -17,9 +20,10 @@ export class CategorieController {
   }
 
   @Public()
+  @UseGuards(OptionalJwtGuard)
   @Get()
-  findAll(@Query() pagination: PaginationDto) {
-    return this.categorieService.findAll(pagination);
+  findAll(@Query() pagination: PaginationDto, @Request() req: any) {
+    return this.categorieService.findAll(pagination, req.user);
   }
 
   @Public()

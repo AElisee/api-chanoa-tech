@@ -33,14 +33,25 @@ export class CategorieService {
     const existing = await this.categorieRepository.findOne({ where: { slug } });
     if (existing) throw new ConflictException(`Slug "${slug}" déjà utilisé`);
 
-    const categorie = this.categorieRepository.create({ ...dto, slug });
+    // parentId doit être converti en relation TypeORM (pas une colonne directe sur l'entité)
+    const { parentId, ...rest } = dto;
+    const categorie = this.categorieRepository.create({
+      ...rest,
+      slug,
+      ...(parentId ? { parent: { id: parentId } as Categorie } : {}),
+    });
     return this.categorieRepository.save(categorie);
   }
 
-  async findAll(pagination: PaginationDto = {}) {
+  async findAll(pagination: PaginationDto = {}, requestingUser?: any) {
     const { page = 1, limit = 20 } = pagination;
+    const where: any = {};
+    if (!requestingUser || requestingUser.role !== 'admin') {
+      where.is_active = true;
+    }
     const [data, total] = await this.categorieRepository.findAndCount({
-      where: { is_active: true },
+      where,
+      relations: { parent: true },
       order: { sort_order: 'ASC' },
       skip: (page - 1) * limit,
       take: limit,

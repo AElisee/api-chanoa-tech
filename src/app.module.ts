@@ -51,7 +51,7 @@ import { SeedModule } from './seed/seed.module';
     ThrottlerModule.forRoot([{
       name: 'short',
       ttl: 60000,
-      limit: 10,
+      limit: 10000, // élevé pour permettre les imports en masse (auth gardée par ses propres @Throttle)
     }]),
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', 'uploads'),
