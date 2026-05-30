@@ -51,7 +51,7 @@ export class PaymentService {
       throw new BadRequestException('Le montant de la commande est invalide');
     }
 
-    const frontendUrl = this.configService.get<string>('FRONTEND_URL', 'http://localhost:3001');
+    const frontendUrl = this.configService.get<string>('FRONTEND_URL', 'http://localhost:3201');
     const apiUrl = this.configService.getOrThrow<string>('GENIUSPAY_API_URL');
 
     // 2. Appel GeniusPay POST /payments

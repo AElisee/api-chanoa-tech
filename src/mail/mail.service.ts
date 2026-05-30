@@ -9,7 +9,7 @@ export class MailService {
   constructor(private readonly configService: ConfigService) {}
 
   async sendPasswordReset(email: string, token: string): Promise<void> {
-    const frontendUrl = this.configService.get<string>('FRONTEND_URL', 'http://localhost:3001');
+    const frontendUrl = this.configService.get<string>('FRONTEND_URL', 'http://localhost:3201');
     const resetUrl = `${frontendUrl}/reset-password?token=${token}`;
 
     const host = this.configService.get<string>('MAIL_HOST');

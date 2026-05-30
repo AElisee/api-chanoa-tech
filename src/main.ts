@@ -13,7 +13,7 @@ async function bootstrap() {
     transform: true,
   }));
 
-  const allowedOrigins = (process.env.FRONTEND_URL || 'http://localhost:3001')
+  const allowedOrigins = (process.env.FRONTEND_URL || 'http://localhost:3201')
     .split(',')
     .map((o) => o.trim());
 
