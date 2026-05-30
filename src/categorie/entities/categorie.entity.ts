@@ -58,4 +58,6 @@ export class Categorie {
     cascade: ['soft-remove'],
   })
   produits: Produit[];
+
+  product_count?: number;
 }

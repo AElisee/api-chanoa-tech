@@ -45,17 +45,25 @@ export class CategorieService {
 
   async findAll(pagination: PaginationDto = {}, requestingUser?: any) {
     const { page = 1, limit = 20 } = pagination;
-    const where: any = {};
+
+    const qb = this.categorieRepository
+      .createQueryBuilder('cat')
+      .loadRelationCountAndMap(
+        'cat.product_count',
+        'cat.produits',
+        'p',
+        (qb) => qb.andWhere('p.is_active = :pActive', { pActive: true }),
+      )
+      .orderBy('cat.sort_order', 'ASC')
+      .addOrderBy('cat.name', 'ASC')
+      .skip((page - 1) * limit)
+      .take(limit);
+
     if (!requestingUser || requestingUser.role !== 'admin') {
-      where.is_active = true;
+      qb.where('cat.is_active = :catActive', { catActive: true });
     }
-    const [data, total] = await this.categorieRepository.findAndCount({
-      where,
-      relations: { parent: true },
-      order: { sort_order: 'ASC' },
-      skip: (page - 1) * limit,
-      take: limit,
-    });
+
+    const [data, total] = await qb.getManyAndCount();
     return { data, total, page, limit, totalPages: Math.ceil(total / limit) };
   }
 
