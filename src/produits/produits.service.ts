@@ -5,7 +5,7 @@ import slugify from 'slugify';
 import { Produit } from './entities/produit.entity';
 import { CreateProduitDto } from './dto/create-produit.dto';
 import { UpdateProduitDto } from './dto/update-produit.dto';
-import { PaginationDto } from '../common/dto/pagination.dto';
+import { GetProduitsDto } from './dto/get-produits.dto';
 
 @Injectable()
 export class ProduitsService {
@@ -37,19 +37,33 @@ export class ProduitsService {
     return this.produitRepository.save(produit);
   }
 
-  async findAll(pagination: PaginationDto = {}, requestingUser?: any) {
-    const { page = 1, limit = 20 } = pagination;
-    const where: any = {};
-    if (!requestingUser || requestingUser.role !== 'admin') {
-      where.is_active = true;
+  async findAll(pagination: GetProduitsDto = {}, requestingUser?: any) {
+    const { page = 1, limit = 20, search, categoryId } = pagination;
+    const isAdmin = requestingUser?.role === 'admin';
+
+    const qb = this.produitRepository
+      .createQueryBuilder('p')
+      .leftJoinAndSelect('p.categorie', 'categorie')
+      .orderBy('p.createdAt', 'DESC')
+      .skip((page - 1) * limit)
+      .take(limit);
+
+    if (!isAdmin) {
+      qb.andWhere('p.is_active = :active', { active: true });
     }
-    const [data, total] = await this.produitRepository.findAndCount({
-      where,
-      relations: { categorie: true },
-      order: { createdAt: 'DESC' },
-      skip: (page - 1) * limit,
-      take: limit,
-    });
+
+    if (categoryId) {
+      qb.andWhere('p.categoryId = :categoryId', { categoryId });
+    }
+
+    if (search?.trim()) {
+      qb.andWhere(
+        '(p.name LIKE :search OR p.brand LIKE :search OR p.sku LIKE :search)',
+        { search: `%${search.trim()}%` },
+      );
+    }
+
+    const [data, total] = await qb.getManyAndCount();
     return { data, total, page, limit, totalPages: Math.ceil(total / limit) };
   }
 

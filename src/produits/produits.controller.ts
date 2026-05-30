@@ -5,7 +5,7 @@ import { CreateProduitDto } from './dto/create-produit.dto';
 import { UpdateProduitDto } from './dto/update-produit.dto';
 import { Public } from '../auth/decorators/public.decorator';
 import { RequiredPermission } from '../auth/decorators/permissions.decorator';
-import { PaginationDto } from '../common/dto/pagination.dto';
+import { GetProduitsDto } from './dto/get-produits.dto';
 import { OptionalJwtGuard } from '../auth/guards/optional-jwt.guard';
 
 @SkipThrottle()
@@ -22,7 +22,7 @@ export class ProduitsController {
   @Public()
   @UseGuards(OptionalJwtGuard)
   @Get()
-  findAll(@Query() pagination: PaginationDto, @Request() req: any) {
+  findAll(@Query() pagination: GetProduitsDto, @Request() req: any) {
     return this.produitsService.findAll(pagination, req.user);
   }
 
