@@ -26,14 +26,15 @@ export class CommandeService {
   async create(dto: CreateCommandeDto): Promise<Commande> {
     return this.commandeRepository.manager.transaction(async (manager) => {
       // 1. Créer la commande sans items ni total
-      const commande = manager.create(Commande, {
+      const commandeData: Partial<Commande> = {
         status: OrderStatus.PENDING,
         guestEmail: dto.guestEmail ?? null,
         shippingAddress: dto.shippingAddress ?? null,
         notes: dto.notes ?? null,
         paymentMethod: dto.paymentMethod ?? null,
         userId: dto.userId ?? null,
-      });
+      };
+      const commande = manager.create(Commande, commandeData as any);
       const savedCommande = await manager.save(Commande, commande);
 
       // 2. Créer les items avec vérification et snapshot
