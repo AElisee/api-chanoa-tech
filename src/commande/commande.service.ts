@@ -1,4 +1,4 @@
-import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Commande, OrderStatus } from './entities/commande.entity';
@@ -20,8 +20,57 @@ export class CommandeService {
   ) {}
 
   async create(dto: CreateCommandeDto): Promise<Commande> {
-    const commande = this.commandeRepository.create(dto);
-    return this.commandeRepository.save(commande);
+    return this.commandeRepository.manager.transaction(async (manager) => {
+      // 1. Créer la commande sans items ni total
+      const commande = manager.create(Commande, {
+        status: OrderStatus.PENDING,
+        guestEmail: dto.guestEmail ?? null,
+        shippingAddress: dto.shippingAddress ?? null,
+        notes: dto.notes ?? null,
+        paymentMethod: dto.paymentMethod ?? null,
+        userId: dto.userId ?? null,
+      });
+      const savedCommande = await manager.save(Commande, commande);
+
+      // 2. Créer les items avec vérification et snapshot
+      let total = 0;
+      if (dto.items?.length) {
+        for (const item of dto.items) {
+          // Vérifier existence et disponibilité du produit
+          const produit = await this.produitsService.findOne(item.productId);
+          if (!produit.is_active) {
+            throw new BadRequestException(`Produit "${produit.name}" n'est plus disponible`);
+          }
+          if (produit.stock !== null && produit.stock < item.quantity) {
+            throw new BadRequestException(
+              `Stock insuffisant pour "${produit.name}" (disponible : ${produit.stock}, demandé : ${item.quantity})`,
+            );
+          }
+
+          const unitPrice = Number(produit.price); // Prix vérifié en base
+          total += unitPrice * item.quantity;
+
+          await manager.save(ProduitCommande, {
+            commandeId: savedCommande.id,
+            productId: item.productId,
+            quantity: item.quantity,
+            unitPrice,
+            productSnapshot: {
+              name: produit.name,
+              sku: produit.sku ?? null,
+              brand: produit.brand ?? null,
+              price: produit.price,
+              image: produit.images?.[0] ?? null,
+            },
+          });
+        }
+
+        // 3. Mettre à jour le total
+        await manager.update(Commande, savedCommande.id, { total });
+      }
+
+      return this.findOne(savedCommande.id);
+    });
   }
 
   async findAll(pagination: PaginationDto = {}, requestingUser?: User) {
