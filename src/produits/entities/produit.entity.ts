@@ -58,6 +58,9 @@ export class Produit {
   @OneToMany(() => Media, (media) => media.produit, { cascade: ['insert', 'remove'] })
   medias: Media[];
 
+  @Column({ type: 'json', nullable: true })
+  images: string[];
+
   @Column({ nullable: true })
   sku: string;
 
