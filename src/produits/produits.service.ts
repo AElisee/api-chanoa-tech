@@ -79,6 +79,15 @@ export class ProduitsService {
     return { data, total, page, limit, totalPages: Math.ceil(total / limit) };
   }
 
+  async findBySlug(slug: string): Promise<Produit> {
+    const produit = await this.produitRepository.findOne({
+      where: { slug },
+      relations: { categorie: true },
+    });
+    if (!produit) throw new NotFoundException(`Produit "${slug}" introuvable`);
+    return produit;
+  }
+
   async findOne(id: string): Promise<Produit> {
     const produit = await this.produitRepository.findOne({
       where: { id },
