@@ -5,9 +5,10 @@ import { CommandeController } from './commande.controller';
 import { Commande } from './entities/commande.entity';
 import { ProduitCommande } from '../produit_commande/entities/produit_commande.entity';
 import { ProduitsModule } from '../produits/produits.module';
+import { MailModule } from '../mail/mail.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Commande, ProduitCommande]), ProduitsModule],
+  imports: [TypeOrmModule.forFeature([Commande, ProduitCommande]), ProduitsModule, MailModule],
   controllers: [CommandeController],
   providers: [CommandeService],
   exports: [CommandeService],

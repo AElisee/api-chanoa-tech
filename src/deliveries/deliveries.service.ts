@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 import { Delivery } from './entities/delivery.entity';
 import { CreateDeliveryDto } from './dto/create-delivery.dto';
 import { UpdateDeliveryDto } from './dto/update-delivery.dto';
@@ -11,11 +11,29 @@ export class DeliveriesService {
   constructor(
     @InjectRepository(Delivery)
     private readonly deliveryRepository: Repository<Delivery>,
+    private readonly dataSource: DataSource,
   ) {}
 
   async create(dto: CreateDeliveryDto): Promise<Delivery> {
-    const delivery = this.deliveryRepository.create(dto);
-    return this.deliveryRepository.save(delivery);
+    const delivery = this.deliveryRepository.create({
+      tracking_number: dto.tracking_number,
+      carrier: dto.carrier,
+      status: dto.status,
+      notes: dto.notes,
+      shipped_at: dto.shipped_at ? new Date(dto.shipped_at) : null,
+      delivered_at: dto.delivered_at ? new Date(dto.delivered_at) : null,
+    });
+    const saved = await this.deliveryRepository.save(delivery);
+
+    // Lier la livraison à la commande (FK deliveryId sur la table orders)
+    await this.dataSource
+      .createQueryBuilder()
+      .update('orders')
+      .set({ deliveryId: saved.id } as any)
+      .where('id = :id', { id: dto.orderId })
+      .execute();
+
+    return saved;
   }
 
   async findAll(pagination: PaginationDto = {}) {

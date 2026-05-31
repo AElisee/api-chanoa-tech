@@ -1,7 +1,10 @@
-import { IsDateString, IsEnum, IsOptional, IsString } from 'class-validator';
+import { IsDateString, IsEnum, IsOptional, IsString, IsUUID } from 'class-validator';
 import { DeliveryStatus } from '../entities/delivery.entity';
 
 export class CreateDeliveryDto {
+  @IsUUID()
+  orderId: string;
+
   @IsOptional()
   @IsString()
   tracking_number?: string;

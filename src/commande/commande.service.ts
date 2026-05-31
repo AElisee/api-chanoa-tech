@@ -1,4 +1,4 @@
-import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Commande, OrderStatus } from './entities/commande.entity';
@@ -8,15 +8,19 @@ import { CreateCommandeDto } from './dto/create-commande.dto';
 import { UpdateCommandeDto } from './dto/update-commande.dto';
 import { PaginationDto } from '../common/dto/pagination.dto';
 import { User } from '../user/entities/user.entity';
+import { MailService } from '../mail/mail.service';
 
 @Injectable()
 export class CommandeService {
+  private readonly logger = new Logger(CommandeService.name);
+
   constructor(
     @InjectRepository(Commande)
     private readonly commandeRepository: Repository<Commande>,
     @InjectRepository(ProduitCommande)
     private readonly produitCommandeRepository: Repository<ProduitCommande>,
     private readonly produitsService: ProduitsService,
+    private readonly mailService: MailService,
   ) {}
 
   async create(dto: CreateCommandeDto): Promise<Commande> {
@@ -69,7 +73,26 @@ export class CommandeService {
         await manager.update(Commande, savedCommande.id, { total });
       }
 
-      return this.findOne(savedCommande.id);
+      const result = await this.findOne(savedCommande.id);
+
+      // Envoyer l'email de confirmation (ne pas bloquer si échec)
+      const recipientEmail = dto.guestEmail ?? result.user?.email;
+      if (recipientEmail) {
+        const emailItems = result.items?.map(i => ({
+          name: (i.productSnapshot as any)?.name ?? 'Produit',
+          quantity: i.quantity,
+          unitPrice: Number(i.unitPrice),
+        })) ?? [];
+        this.mailService.sendOrderConfirmation(
+          recipientEmail,
+          result.id,
+          emailItems,
+          Number(result.total),
+          dto.paymentMethod ?? 'genius_pay',
+        ).catch(err => this.logger.warn(`Email confirmation failed: ${err.message}`));
+      }
+
+      return result;
     });
   }
 
@@ -119,6 +142,21 @@ export class CommandeService {
     }
 
     await this.commandeRepository.update(id, dto);
+
+    if (dto.status && dto.status !== commande.status) {
+      const updated = await this.findOne(id);
+      const recipientEmail = updated.guestEmail ?? updated.user?.email;
+      if (recipientEmail) {
+        const trackingNumber = updated.delivery?.tracking_number ?? null;
+        this.mailService.sendOrderStatusUpdate(
+          recipientEmail,
+          id,
+          dto.status,
+          trackingNumber,
+        ).catch(err => this.logger.warn(`Email status update failed: ${err.message}`));
+      }
+    }
+
     return this.findOne(id);
   }
 
