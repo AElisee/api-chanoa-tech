@@ -72,7 +72,13 @@ export class CommandeService {
         await manager.update(Commande, savedCommande.id, { total });
       }
 
-      const result = await this.findOne(savedCommande.id);
+      // Utiliser manager.findOne (même connexion TX) pour éviter le rollback
+      // causé par REPEATABLE READ de MySQL qui ne voit pas les données non commitées
+      const result = await manager.findOne(Commande, {
+        where: { id: savedCommande.id },
+        relations: { user: true, items: { product: true }, delivery: true },
+      });
+      if (!result) throw new NotFoundException(`Commande #${savedCommande.id} introuvable après création`);
 
       // Envoyer l'email de confirmation (ne pas bloquer si échec)
       const recipientEmail = dto.guestEmail ?? result.user?.email;
